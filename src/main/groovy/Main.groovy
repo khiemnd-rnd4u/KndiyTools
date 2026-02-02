@@ -1,10 +1,16 @@
 import entities.Matrix
 import novelParsingService.NovelProcessor
+import pricefx.Metcash
 import sensorService.SensorFolderParser
 import cache.Cache
 
 static void main(String[] args) {
-    runNovelParser()
+    Metcash metcash = new Metcash()
+    Map fileByStateByDsName = metcash.getIntegrationFileByStateByDsName("/home/kndiy/metcashIntegration/files/Source/")
+    metcash.copyFilesToFolder(
+            fileByStateByDsName,
+            "/home/kndiy/metcashIntegration/files/Target/"
+    )
 }
 
 static void runMatrixTesting() {
@@ -20,12 +26,12 @@ static void runMatrixTesting() {
 
 static void runNovelParser() {
     runNovelParser(
-            "/run/media/kndiy/Mana/Documents/Kindle Books/WN CN Mystical Journey/source/",
-            "/run/media/kndiy/Mana/Documents/Kindle Books/WN CN Mystical Journey/WN CN Mystical Journey.docx",
+            "/run/media/kndiy/Mana/Documents/Kindle Books/WN CN The Dark King/source/",
+            "/run/media/kndiy/Mana/Documents/Kindle Books/WN CN The Dark King/WN CN The Dark King.docx",
             "/run/media/kndiy/Mana/Documents/Kindle Books/Template.docx",
-            "If you find any errors", "MYSTICAL JOURNEY",
+            "If you find any errors", "THE DARK KING",
             "Chapter ",
-            "Mystical Journey", "滚开 - Gun Kai"
+            "The Dark King", "古羲 - Gu Xi"
     )
 }
 
