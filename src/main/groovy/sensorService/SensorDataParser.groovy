@@ -13,7 +13,11 @@ import org.joda.time.DateTime
 import java.util.zip.DataFormatException
 
 class SensorDataParser {
+    static final String MAX_TEMP = "maxTemp"
+    static final String MIN_TEMP = "minTemp"
     static final String TEMPERATURE = "temperature"
+    static final String MAX_HUMIDITY = "maxHumidity"
+    static final String MIN_HUMIDITY = "minHumidity"
     static final String HUMIDITY = "humidity"
     static final String SERIAL_SEPARATOR = "-"
     static final String EVENT = "event"
@@ -82,14 +86,7 @@ class SensorDataParser {
         String serial = ""
         println("+++++++++++++++++++++++++++")
         for (String line : lines) {
-            line = line.replace("         ", " ")
-            line = line.replace("        ", " ")
-            line = line.replace("       ", " ")
-            line = line.replace("      ", " ")
-            line = line.replace("     ", " ")
-            line = line.replace("    ", " ")
-            line = line.replace("   ", " ")
-            line = line.replace("  ", " ")
+            line = fixSpacing(line)
             println(line)
             if (line.contains("Serial #:")) {
                 List serialLineComponents = line.split(" ")
@@ -156,14 +153,7 @@ class SensorDataParser {
                                                                 String serial) {
         List lines = text.split("\n")
         for (String line : lines) {
-            line = line.replace("         ", " ")
-            line = line.replace("        ", " ")
-            line = line.replace("       ", " ")
-            line = line.replace("      ", " ")
-            line = line.replace("     ", " ")
-            line = line.replace("    ", " ")
-            line = line.replace("   ", " ")
-            line = line.replace("  ", " ")
+            line = fixSpacing(line)
             println(line)
 
             currentLineLeftSideError = false
@@ -182,6 +172,19 @@ class SensorDataParser {
         }
 
         return dataBySerialByDateTime
+    }
+
+    String fixSpacing(String inputString) {
+        inputString = inputString.replace("         ", " ")
+        inputString = inputString.replace("        ", " ")
+        inputString = inputString.replace("       ", " ")
+        inputString = inputString.replace("      ", " ")
+        inputString = inputString.replace("     ", " ")
+        inputString = inputString.replace("    ", " ")
+        inputString = inputString.replace("   ", " ")
+        inputString = inputString.replace("  ", " ")
+
+        return inputString
     }
 
     boolean isDataLine(List words) {
@@ -308,14 +311,24 @@ class SensorDataParser {
         Boolean isAM = checkAMOrPM(words, ++i)
 
         int year = (dateCompos[yearIdx] as BigInteger).toInteger()
+        int temYearIdx = yearIdx
+        int temMonthIdx = monthIdx
+        int tempDayIdx = dayIdx
+        if (year < 2000) {
+            temYearIdx = 0
+            temMonthIdx = 1
+            tempDayIdx = 2
+        }
+
+        year = (dateCompos[temYearIdx] as BigInteger).toInteger()
         int month
         try {
-            month = (dateCompos[monthIdx] as BigInteger).toInteger()
+            month = (dateCompos[temMonthIdx] as BigInteger).toInteger()
         }
         catch (Exception ignored) {
-            month = (TimeAndDate.MONTH_BY_ABBREVIATION[dateCompos[monthIdx].toLowerCase()] as BigInteger).toInteger()
+            month = (TimeAndDate.MONTH_BY_ABBREVIATION[dateCompos[temMonthIdx].toLowerCase()] as BigInteger).toInteger()
         }
-        int day = (dateCompos[dayIdx] as BigInteger).toInteger()
+        int day = (dateCompos[tempDayIdx] as BigInteger).toInteger()
 
         int hour = (timeCompos[0] as BigInteger).toInteger()
         int min = (timeCompos[1] as BigInteger).toInteger()

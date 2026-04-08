@@ -1,16 +1,51 @@
+import chineseTextService.ChineseNumberConverter
 import entities.Matrix
 import novelParsingService.NovelProcessor
-import pricefx.Metcash
+import readTxtNovelParsingService.NovelConverter
 import sensorService.SensorFolderParser
 import cache.Cache
 
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+
 static void main(String[] args) {
-    Metcash metcash = new Metcash()
-    Map fileByStateByDsName = metcash.getIntegrationFileByStateByDsName("/home/kndiy/metcashIntegration/files/Source/")
-    metcash.copyFilesToFolder(
-            fileByStateByDsName,
-            "/home/kndiy/metcashIntegration/files/Target/"
+    SensorFolderParser folderParser = new SensorFolderParser(
+            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260329 Kiem Dinh Xe Van Chuyen\\FinalArrangement\\Xe1\\Lan1",
+            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260329 Kiem Dinh Xe Van Chuyen\\FinalArrangement\\Xe1\\Lan1.xlsx",
+            5,
+            0, 1, 2,
+            4, 3,
+            10
     )
+
+    folderParser.parseFilesInFolder()
+
+//    String movePath = "D:\\AllFiles\\All"
+//    File folder = new File("D:\\AllFiles")
+//    folder.listFiles().each { File file ->
+//        Path sourceFile = Paths.get(file.getPath())
+//        String pathToMove = movePath
+//        Path moveToPath = Paths.get(pathToMove)
+//        Files.createDirectories(moveToPath)
+//
+//        String fileName = sourceFile.getFileName()
+//        fileName = fileName?.split("__")?.first()
+//        Path moveToFile = moveToPath.resolve(fileName)
+//        Files.copy(sourceFile, moveToFile)
+//        println("copy for ${moveToFile}")
+//    }
+
+//    new NovelConverter(
+//            "D:\\Documents\\Kindle Books\\RAW Chinese Books\\远瞳 《黎明之剑》 Sword of Daybreaker.txt",
+//            "D:\\Documents\\Kindle Books\\RAW Chinese Books\\远瞳 《黎明之剑》 Sword of Daybreaker.docx",
+//            "D:\\Documents\\Kindle Books\\RAW Chinese Books\\Template.docx",
+//            "远瞳", "黎明之剑"
+//    )
+//
+
+//    Metcash metcash = new Metcash()
+//    metcash.convertUtcDateTimeToBrisbaneDateTime("2026-02-04T21:00:00")
 }
 
 static void runMatrixTesting() {
