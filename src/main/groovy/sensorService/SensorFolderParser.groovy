@@ -335,7 +335,7 @@ class SensorFolderParser {
         writeTableHeader(humiditySheet, cellNumber, serial)
         writeMinOrMax(humiditySheet, MAX_ROW_NUMBER, cellNumber, data, false)
         writeMinOrMax(humiditySheet, MIN_ROW_NUMBER, cellNumber, data, false, false)
-        writeAvg(temperatureSheet, cellNumber, data, false)
+        writeAvg(humiditySheet, cellNumber, data, false)
     }
 
     private void writeAvg(Sheet sheet, int cellNumber, Map data, boolean isTemp) {
