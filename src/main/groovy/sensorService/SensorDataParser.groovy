@@ -101,33 +101,33 @@ class SensorDataParser {
 
             if (line.contains("Description:")) {
                 description = line - "Description: "
-                List descParts = description.split(" ")
-                if (descParts.size() == 1) {
-                    descParts = [ ]
-                    for (int i = 0; i < description.length(); i ++) {
-                        String cur = description.substring(i, i + 1)
-                        try {
-                            Integer num = cur.toBigInteger().toInteger()
-                            if (!descParts[1]) {
-                                descParts[1] = num
-                            }
-                            else {
-                                descParts[1] = "${descParts[1]}${num}"
-                            }
-                        }
-                        catch (ignored) {
-                            if (!descParts[0]) {
-                                descParts[0] = cur
-                            }
-                            else {
-                                descParts[0] = "${descParts[0]}${cur}"
-                            }
-                        }
-                    }
-                }
-                int numPart = (descParts[1] as String).toBigInteger().toInteger()
-                String finalNum = String.format("%03d", numPart)
-                description = "${descParts[0]}-${finalNum}"
+//                List descParts = description.split(" ")
+//                if (descParts.size() == 1) {
+//                    descParts = [ ]
+//                    for (int i = 0; i < description.length(); i ++) {
+//                        String cur = description.substring(i, i + 1)
+//                        try {
+//                            Integer num = cur.toBigInteger().toInteger()
+//                            if (!descParts[1]) {
+//                                descParts[1] = num
+//                            }
+//                            else {
+//                                descParts[1] = "${descParts[1]}${num}"
+//                            }
+//                        }
+//                        catch (ignored) {
+//                            if (!descParts[0]) {
+//                                descParts[0] = cur
+//                            }
+//                            else {
+//                                descParts[0] = "${descParts[0]}${cur}"
+//                            }
+//                        }
+//                    }
+//                }
+//                int numPart = (descParts[1] as String).toBigInteger().toInteger()
+//                String finalNum = String.format("%03d", numPart)
+//                description = "${descParts[0]}-${finalNum}"
             }
 
             if (description != "" && serial != "") {

@@ -11,10 +11,10 @@ import java.nio.file.Paths
 
 static void main(String[] args) {
     SensorFolderParser folderParser = new SensorFolderParser(
-            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260329 Kiem Dinh Xe Van Chuyen\\FinalArrangement\\Xe1\\Lan1",
-            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260329 Kiem Dinh Xe Van Chuyen\\FinalArrangement\\Xe1\\Lan1.xlsx",
+            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260329 Kiem Dinh Xe Toan Dan\\Final Arrangement\\Xe1\\Lan1",
+            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260329 Kiem Dinh Xe Toan Dan\\Final Arrangement\\Xe1\\Xe1_Lan1.xlsx",
             5,
-            0, 1, 2,
+            2, 0, 1,
             4, 3,
             10
     )
