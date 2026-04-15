@@ -1,51 +1,15 @@
-import chineseTextService.ChineseNumberConverter
 import entities.Matrix
-import novelParsingService.NovelProcessor
-import readTxtNovelParsingService.NovelConverter
-import sensorService.SensorFolderParser
-import cache.Cache
+import entities.sensor.Inspection
+import services.kndiyLibraries.DateTimeResolver
+import services.novelParsingService.NovelProcessor
+import services.sensorService.SensorDataResolver
+import services.sensorService.SensorFolderParser
+import services.sensorService.SensorReferenceReport
 
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.time.ZonedDateTime
 
 static void main(String[] args) {
-    SensorFolderParser folderParser = new SensorFolderParser(
-            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260329 Kiem Dinh Xe Toan Dan\\Final Arrangement\\Xe1\\Lan1",
-            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260329 Kiem Dinh Xe Toan Dan\\Final Arrangement\\Xe1\\Xe1_Lan1.xlsx",
-            5,
-            2, 0, 1,
-            4, 3,
-            10
-    )
-
-    folderParser.parseFilesInFolder()
-
-//    String movePath = "D:\\AllFiles\\All"
-//    File folder = new File("D:\\AllFiles")
-//    folder.listFiles().each { File file ->
-//        Path sourceFile = Paths.get(file.getPath())
-//        String pathToMove = movePath
-//        Path moveToPath = Paths.get(pathToMove)
-//        Files.createDirectories(moveToPath)
-//
-//        String fileName = sourceFile.getFileName()
-//        fileName = fileName?.split("__")?.first()
-//        Path moveToFile = moveToPath.resolve(fileName)
-//        Files.copy(sourceFile, moveToFile)
-//        println("copy for ${moveToFile}")
-//    }
-
-//    new NovelConverter(
-//            "D:\\Documents\\Kindle Books\\RAW Chinese Books\\远瞳 《黎明之剑》 Sword of Daybreaker.txt",
-//            "D:\\Documents\\Kindle Books\\RAW Chinese Books\\远瞳 《黎明之剑》 Sword of Daybreaker.docx",
-//            "D:\\Documents\\Kindle Books\\RAW Chinese Books\\Template.docx",
-//            "远瞳", "黎明之剑"
-//    )
-//
-
-//    Metcash metcash = new Metcash()
-//    metcash.convertUtcDateTimeToBrisbaneDateTime("2026-02-04T21:00:00")
+    runSensorParser()
 }
 
 static void runMatrixTesting() {
@@ -70,16 +34,6 @@ static void runNovelParser() {
     )
 }
 
-static void runSensorParser() {
-    runSensorParser(
-            "D:\\Documents\\Personal\\00 Family Small\\Projects\\250710 Tham Dinh Kho\\kho thường 7 ngày\\kho thường 7 ngày PDF",
-            "D:\\Documents\\Personal\\00 Family Small\\Projects\\250710 Tham Dinh Kho\\KhoThuong7Ngay.xlsx",
-            6,
-            2, 0, 1,
-            4, 3, 15
-    )
-}
-
 static void runNovelParser(String sourcePath, String outputPath, String templatePath,
                            String skippableStartSign, String skippableEndSign,
                            String chapterStartsWithText,
@@ -92,19 +46,32 @@ static void runNovelParser(String sourcePath, String outputPath, String template
     )
 }
 
-static void runSensorParser(String folderPath, String savePathWithName,
-                       int columnSizeWithoutEvent,
-                       int yearIdx, int monthIdx, int dayIdx,
-                       int temperatureIdx, int humidityIdx,
-                       int minuteInterval) {
-    SensorFolderParser sensorFolderParser = new SensorFolderParser(
-            folderPath, savePathWithName,
-            columnSizeWithoutEvent,
-            yearIdx, monthIdx, dayIdx,
-            temperatureIdx, humidityIdx,
-            minuteInterval
-    )
-    sensorFolderParser.parseFilesInFolder()
+static void runSensorParser() {
+    String sourceFolder = "D:\\Documents\\Personal\\00 Family Small\\Projects\\260407 Kiem Dinh Kho Viet An\\Final Arrangement\\Official Test\\PhongNgoai"
+    String savedFileName = "Kho_Viet_An"
+    String savedPath = "D:\\"
 
-    Cache.printErrorMessages()
+    String dateTime = DateTimeResolver.getDateTimeString(ZonedDateTime.now(), "yyyyMMdd_HHmm")
+
+    SensorFolderParser sensorFolderParser = new SensorFolderParser(
+            sourceFolder,
+            5,
+            2, 0, 1,
+            4, 3,
+            15
+    )
+    TreeMap rawData = sensorFolderParser.parseFilesInFolderAndGetRawData()
+
+    SensorDataResolver sensorDataResolver = new SensorDataResolver(
+            rawData,
+            "VietAn_20260407",
+            savedFileName,
+            "HCM",
+            "2026-03-29"
+    )
+    Inspection inspection = sensorDataResolver.getInspection()
+//    new SensorDistributionReport(inspection, false)
+//            .createAndSaveWorkbook("${savedPath}${dateTime}_${savedFileName}.xlsx")
+    new SensorReferenceReport(inspection, false)
+            .createAndSaveWorkbook("${savedPath}${dateTime}_ReferenceData_${savedFileName}.xlsx")
 }

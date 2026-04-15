@@ -1,4 +1,4 @@
-package novelParsingService
+package services.novelParsingService
 
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment
 import org.apache.poi.xwpf.usermodel.UnderlinePatterns

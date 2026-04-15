@@ -1,4 +1,4 @@
-package novelParsingService
+package services.novelParsingService
 
 class NovelParser implements ParserInterface {
     String fileAbsolutePath

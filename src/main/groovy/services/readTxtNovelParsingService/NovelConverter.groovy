@@ -1,4 +1,4 @@
-package readTxtNovelParsingService
+package services.readTxtNovelParsingService
 
 import chineseTextService.ChineseNumberConverter
 
