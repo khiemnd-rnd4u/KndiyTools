@@ -3,6 +3,7 @@ import entities.sensor.Inspection
 import services.kndiyLibraries.DateTimeResolver
 import services.novelParsingService.NovelProcessor
 import services.sensorService.SensorDataResolver
+import services.sensorService.SensorDistributionReport
 import services.sensorService.SensorFolderParser
 import services.sensorService.SensorReferenceReport
 
@@ -51,7 +52,9 @@ static void runSensorParser() {
     String savedFileName = "Kho_Viet_An"
     String savedPath = "D:\\"
 
-    String dateTime = DateTimeResolver.getDateTimeString(ZonedDateTime.now(), "yyyyMMdd_HHmm")
+    String inspectionId = "VietAn_20260407"
+    String inspectionAddress = "HCM"
+    String inspectionDate = "2026-04-04"
 
     SensorFolderParser sensorFolderParser = new SensorFolderParser(
             sourceFolder,
@@ -60,18 +63,23 @@ static void runSensorParser() {
             4, 3,
             15
     )
+    ////////////////////// DON'T TOUCH BELOW
+    ////////////////////// DON'T TOUCH BELOW
+    ////////////////////// DON'T TOUCH BELOW
+    String dateTime = DateTimeResolver.getDateTimeString(ZonedDateTime.now(), "yyyyMMdd_HHmm")
+
     TreeMap rawData = sensorFolderParser.parseFilesInFolderAndGetRawData()
 
     SensorDataResolver sensorDataResolver = new SensorDataResolver(
             rawData,
-            "VietAn_20260407",
+            inspectionId,
             savedFileName,
-            "HCM",
-            "2026-03-29"
+            inspectionAddress,
+            inspectionDate
     )
     Inspection inspection = sensorDataResolver.getInspection()
-//    new SensorDistributionReport(inspection, false)
-//            .createAndSaveWorkbook("${savedPath}${dateTime}_${savedFileName}.xlsx")
+    new SensorDistributionReport(inspection, false)
+            .createAndSaveWorkbook("${savedPath}${dateTime}_${savedFileName}.xlsx")
     new SensorReferenceReport(inspection, false)
             .createAndSaveWorkbook("${savedPath}${dateTime}_ReferenceData_${savedFileName}.xlsx")
 }
