@@ -58,8 +58,11 @@ class SensorDistributionReport extends KnDiyWorkbook {
     private int MAX_ROW_NUMBER
     private int AVG_ROW_NUMBER
     private int MIN_ROW_NUMBER
-    private int DATA_START_ROW_NUMBER
-    private int DATA_END_ROW_NUMBER
+    private int MKT_ROW_NUMBER
+    private int DATA_START_TEMP_ROW_NUMBER
+    private int DATA_START_RH_ROW_NUMBER
+    private int DATA_END_TEMP_ROW_NUMBER
+    private int DATA_END_RH_ROW_NUMBER
 
     private int INDEX_CELL_NUMBER = 0
     private int TIME_CELL_NUMBER = 1
@@ -90,9 +93,7 @@ class SensorDistributionReport extends KnDiyWorkbook {
         this.hasAltitude = hasAltitude
         cellNumberByLogTagSerial = [ : ]
 
-        Integer dataCount = inspection.getMaxDataCount()
         Integer sensorCount = inspection.getSensorCount()
-        DATA_END_ROW_NUMBER = DATA_START_ROW_NUMBER + dataCount
         DATA_END_CELL_NUMBER = DATA_START_CELL_NUMBER + sensorCount - 1
         MIN_TOLERANCE_CELL_NUMBER = DATA_END_CELL_NUMBER + 1
         MAX_TOLERANCE_CELL_NUMBER = DATA_END_CELL_NUMBER + 2
@@ -104,8 +105,11 @@ class SensorDistributionReport extends KnDiyWorkbook {
         MAX_ROW_NUMBER = ++currentRowNumber
         AVG_ROW_NUMBER = ++currentRowNumber
         MIN_ROW_NUMBER = ++currentRowNumber
-        DATA_START_ROW_NUMBER = ++currentRowNumber
-        DATA_END_ROW_NUMBER = DATA_START_ROW_NUMBER + inspection.getMaxDataCount() - 1
+        MKT_ROW_NUMBER = ++currentRowNumber
+        DATA_START_TEMP_ROW_NUMBER = ++currentRowNumber
+        DATA_START_RH_ROW_NUMBER = --currentRowNumber
+        DATA_END_TEMP_ROW_NUMBER = DATA_START_TEMP_ROW_NUMBER + inspection.getMaxDataCount() - 1
+        DATA_END_RH_ROW_NUMBER = DATA_START_RH_ROW_NUMBER + inspection.getMaxDataCount() - 1
 
         ALL_TIME_MAX_TEMPERATURE = inspection.getAllTimeMaxTemperature()
         ALL_TIME_MIN_TEMPERATURE = inspection.getAllTimeMinTemperature()
@@ -162,7 +166,7 @@ class SensorDistributionReport extends KnDiyWorkbook {
 
         if (!isChartSheet) {
             sheet.setColumnWidth(INDEX_CELL_NUMBER, 8 * 256)
-            sheet.setColumnWidth(TIME_CELL_NUMBER, 18 * 256)
+            sheet.setColumnWidth(TIME_CELL_NUMBER, 24 * 256)
             (DATA_START_CELL_NUMBER..MAX_TOLERANCE_CELL_NUMBER).each { int cellNum ->
                 sheet.setColumnWidth(cellNum, 15 * 256)
             }
@@ -182,8 +186,8 @@ class SensorDistributionReport extends KnDiyWorkbook {
         writeTitle(temperatureChartSheet, true, true)
         writeTitle(humidityChartSheet, false, true)
 
-        writeStaticHeaders(temperatureSheet)
-        writeStaticHeaders(humiditySheet)
+        writeStaticHeaders(temperatureSheet, true)
+        writeStaticHeaders(humiditySheet, false)
 
         writeMaxToleranceData(temperatureSheet)
         writeMinToleranceData(temperatureSheet)
@@ -220,9 +224,11 @@ class SensorDistributionReport extends KnDiyWorkbook {
         }
     }
 
-    private void writeStaticHeaders(Sheet sheet) {
+    private void writeStaticHeaders(Sheet sheet, boolean isTemp) {
         XSSFTools.styleMergeCells(
-                sheet, HEADER_LOCATION_AND_ALTITUDE_ROW + 1, DATA_START_ROW_NUMBER - 1, MIN_TOLERANCE_CELL_NUMBER, MAX_TOLERANCE_CELL_NUMBER,
+                sheet, HEADER_LOCATION_AND_ALTITUDE_ROW + 1,
+                isTemp ? DATA_START_TEMP_ROW_NUMBER - 1 : DATA_START_RH_ROW_NUMBER - 1,
+                MIN_TOLERANCE_CELL_NUMBER, MAX_TOLERANCE_CELL_NUMBER,
                 WRAP_STYLE,
                 ""
         )
@@ -277,12 +283,20 @@ class SensorDistributionReport extends KnDiyWorkbook {
                 "Giá trị cực đại /\nMaximum",
                 HEADER_ROW_HEIGHT
         )
+
+        if (isTemp) {
+            XSSFTools.styleMergeCells(
+                    sheet, MKT_ROW_NUMBER, MKT_ROW_NUMBER, INDEX_CELL_NUMBER, TIME_CELL_NUMBER, WRAP_BOLD_ITALIC_STYLE,
+                    "Nhiệt động học trung bình/\nMean Kinetic Temperature",
+                    HEADER_ROW_HEIGHT
+            )
+        }
     }
 
     private void writeMinToleranceData(Sheet sheet, boolean isTemp = true) {
         BigDecimal value = isTemp ? inspection.getMinTemperatureTolerance() : inspection.getMinHumidityTolerance()
 
-        (DATA_START_ROW_NUMBER..DATA_END_ROW_NUMBER).each { Integer rowNumber ->
+        ((isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER)..DATA_END_TEMP_ROW_NUMBER).each { Integer rowNumber ->
             XSSFTools.setCellValue(sheet, rowNumber, MIN_TOLERANCE_CELL_NUMBER, WRAP_NUMBER_STYLE, value)
         }
     }
@@ -290,7 +304,7 @@ class SensorDistributionReport extends KnDiyWorkbook {
     private void writeMaxToleranceData(Sheet sheet, boolean isTemp = true) {
         BigDecimal value = isTemp ? inspection.getMaxTemperatureTolerance() : inspection.getMaxHumidityTolerance()
 
-        (DATA_START_ROW_NUMBER..DATA_END_ROW_NUMBER).each { Integer rowNumber ->
+        ((isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER)..DATA_END_TEMP_ROW_NUMBER).each { Integer rowNumber ->
             XSSFTools.setCellValue(sheet, rowNumber, MAX_TOLERANCE_CELL_NUMBER, WRAP_NUMBER_STYLE, value)
         }
     }
@@ -341,43 +355,57 @@ class SensorDistributionReport extends KnDiyWorkbook {
         BigDecimal avg = isTemp ? logTag.getAvgTemperature() : logTag.getAvgHumidity()
         BigDecimal max = isTemp ? logTag.getMaxTemperature() : logTag.getMaxHumidity()
 
-        CellStyle maxStyle = getCellStyleForMaxMinValue(
-                inspection,
-                max,
-                RED_FILL_NUMBER_BOLD_STYLE,
-                GREEN_FILL_NUMBER_BOLD_STYLE,
-                ORANGE_FILL_NUMBER_BOLD_STYLE,
-                isTemp
-        )
-        CellStyle minStyle = getCellStyleForMaxMinValue(
-                inspection,
-                min,
-                RED_FILL_NUMBER_BOLD_STYLE,
-                GREEN_FILL_NUMBER_BOLD_STYLE,
-                BLUE_FILL_NUMBER_BOLD_STYLE,
-                isTemp
-        )
+        boolean isEnvCellNum = cellNum == DATA_END_CELL_NUMBER
+        CellStyle maxStyle = isEnvCellNum
+                ? ORANGE_FILL_NUMBER_BOLD_STYLE
+                : getCellStyleForMaxMinValue(
+                        inspection,
+                        max,
+                        RED_FILL_NUMBER_BOLD_STYLE,
+                        GREEN_FILL_NUMBER_BOLD_STYLE,
+                        ROSE_FILL_NUMBER_BOLD_STYLE,
+                        isTemp
+                )
+        CellStyle minStyle = isEnvCellNum
+                ? ORANGE_FILL_NUMBER_BOLD_STYLE
+                : getCellStyleForMaxMinValue(
+                        inspection,
+                        min,
+                        RED_FILL_NUMBER_BOLD_STYLE,
+                        GREEN_FILL_NUMBER_BOLD_STYLE,
+                        BLUE_FILL_NUMBER_BOLD_STYLE,
+                        isTemp
+                )
+        CellStyle avgStyle = isEnvCellNum
+                ? ORANGE_FILL_NUMBER_BOLD_STYLE
+                : YELLOW_FILL_NUMBER_BOLD_STYLE
 
         XSSFTools.setCellValue(sheet, MIN_ROW_NUMBER, cellNum, minStyle, min)
-        XSSFTools.setCellValue(sheet, AVG_ROW_NUMBER, cellNum, YELLOW_FILL_NUMBER_BOLD_STYLE, avg)
+        XSSFTools.setCellValue(sheet, AVG_ROW_NUMBER, cellNum, avgStyle, avg)
         XSSFTools.setCellValue(sheet, MAX_ROW_NUMBER, cellNum, maxStyle, max)
+        if (isTemp) {
+            CellStyle mktStyle = isEnvCellNum ? ORANGE_FILL_NUMBER_BOLD_STYLE : GREY_FILL_NUMBER_BOLD_STYLE
+            XSSFTools.setCellValue(sheet, MKT_ROW_NUMBER, cellNum, mktStyle, logTag.getMeanKineticTemperature())
+        }
     }
 
     private void writeData() {
         Integer envCellNum = getCellNumber(inspection.getEnvironmentSensor())
 
         inspection.getLogTagSensorByLocation().each { String location, LogTagSensor logTag ->
-            Integer rowNum = DATA_START_ROW_NUMBER
+            Integer tempRowNum = DATA_START_TEMP_ROW_NUMBER
+            Integer rhRowNum = DATA_START_RH_ROW_NUMBER
             Integer cellNum = getCellNumber(logTag)
             Integer idx = 1
             logTag.getLogTagReadingByDateTime().each { ZonedDateTime dateTime, LogTagReading reading ->
                 LogTagReading envReading = inspection.getEnvironmentSensor().getReading(dateTime)
-                writeData(temperatureSheet, reading, rowNum, cellNum, true, idx, dateTime)
-                writeData(temperatureSheet, envReading, rowNum, envCellNum,  true, idx, dateTime)
-                writeData(humiditySheet, reading, rowNum, cellNum,  false, idx, dateTime)
-                writeData(humiditySheet, envReading, rowNum, envCellNum,  false, idx, dateTime)
+                writeData(temperatureSheet, reading, tempRowNum, cellNum, true, idx, dateTime)
+                writeData(temperatureSheet, envReading, tempRowNum, envCellNum,  true, idx, dateTime)
+                writeData(humiditySheet, reading, rhRowNum, cellNum,  false, idx, dateTime)
+                writeData(humiditySheet, envReading, rhRowNum, envCellNum,  false, idx, dateTime)
 
-                rowNum ++
+                tempRowNum ++
+                rhRowNum ++
                 idx ++
             }
         }
@@ -411,8 +439,8 @@ class SensorDistributionReport extends KnDiyWorkbook {
         createLineChart(humidityChartSheet, false)
     }
 
-    private void createLineChart(XSSFSheet sheet, boolean isTemperature = true) {
-        Sheet sourceSheet = isTemperature ? temperatureSheet : humiditySheet
+    private void createLineChart(XSSFSheet sheet, boolean isTemp = true) {
+        Sheet sourceSheet = isTemp ? temperatureSheet : humiditySheet
 
         XSSFDrawing drawing = sheet.createDrawingPatriarch()
         XSSFAnchor anchor = drawing.createAnchor(
@@ -432,22 +460,22 @@ class SensorDistributionReport extends KnDiyWorkbook {
         bottomAxis.setCrosses(AxisCrosses.MIN)
 
         XDDFValueAxis leftAxis = chart.createValueAxis(AxisPosition.LEFT)
-        leftAxis.setTitle(isTemperature ? "Temp °C" : "Hum %RH")
-        leftAxis.setMinimum(findMinimumRoundedValueForLeftAxis(isTemperature))
-        leftAxis.setMaximum(findMaximumRoundedValueForLeftAxis(isTemperature))
+        leftAxis.setTitle(isTemp ? "Temp °C" : "Hum %RH")
+        leftAxis.setMinimum(findMinimumRoundedValueForLeftAxis(isTemp))
+        leftAxis.setMaximum(findMaximumRoundedValueForLeftAxis(isTemp))
         leftAxis.setMinorUnit(0.1)
-        leftAxis.setMajorUnit(isTemperature ? 0.5 : 2.5)
+        leftAxis.setMajorUnit(isTemp ? 0.5 : 2.5)
         leftAxis.setCrosses(AxisCrosses.MIN)
 
         XDDFDataSource timeSource = XDDFDataSourcesFactory.fromStringCellRange(sourceSheet, new CellRangeAddress(
-                DATA_START_ROW_NUMBER, DATA_END_ROW_NUMBER, TIME_CELL_NUMBER, TIME_CELL_NUMBER
+                (isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER), DATA_END_TEMP_ROW_NUMBER, TIME_CELL_NUMBER, TIME_CELL_NUMBER
         ))
 
         Row headerRow = sourceSheet.getRow(HEADER_LOCATION_AND_ALTITUDE_ROW)
         XDDFChartData data = chart.createData(ChartTypes.LINE, bottomAxis, leftAxis)
         (DATA_START_CELL_NUMBER..DATA_END_CELL_NUMBER).each { int cellNumber ->
             XDDFNumericalDataSource valueSource = XDDFDataSourcesFactory.fromNumericCellRange(sourceSheet, new CellRangeAddress(
-                    DATA_START_ROW_NUMBER, DATA_END_ROW_NUMBER, cellNumber, cellNumber
+                    (isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER), DATA_END_TEMP_ROW_NUMBER, cellNumber, cellNumber
             ))
 
             XDDFChartData.Series series = data.addSeries(timeSource, valueSource)
@@ -460,12 +488,15 @@ class SensorDistributionReport extends KnDiyWorkbook {
 
             Cell headerCell = headerRow.getCell(cellNumber)
             String seriesName = headerCell.getStringCellValue()
+            if (seriesName.contains("ENV")) {
+                seriesName += " /\nMôi trường"
+            }
             series.setTitle(seriesName)
         }
 
         [MIN_TOLERANCE_CELL_NUMBER, MAX_TOLERANCE_CELL_NUMBER ].each { int cellNumber ->
             XDDFNumericalDataSource valueSource = XDDFDataSourcesFactory.fromNumericCellRange(sourceSheet, new CellRangeAddress(
-                    DATA_START_ROW_NUMBER, DATA_END_ROW_NUMBER, cellNumber, cellNumber
+                    (isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER), DATA_END_TEMP_ROW_NUMBER, cellNumber, cellNumber
             ))
 
             XDDFChartData.Series series = data.addSeries(timeSource, valueSource)

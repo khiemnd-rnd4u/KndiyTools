@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.Font
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.xssf.usermodel.XSSFColor
 import org.apache.poi.xssf.usermodel.XSSFFont
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import services.kndiyLibraries.XSSFTools
@@ -56,6 +57,16 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
     protected CellStyle RED_FILL_NUMBER_BOLD_STYLE
     protected CellStyle RED_FILL_NUMBER_ITALIC_STYLE
     protected CellStyle RED_FILL_NUMBER_BOLD_ITALIC_STYLE
+
+    protected CellStyle ROSE_FILL_STYLE
+    protected CellStyle ROSE_FILL_BOLD_STYLE
+    protected CellStyle ROSE_FILL_ITALIC_STYLE
+    protected CellStyle ROSE_FILL_BOLD_ITALIC_STYLE
+
+    protected CellStyle ROSE_FILL_NUMBER_STYLE
+    protected CellStyle ROSE_FILL_NUMBER_BOLD_STYLE
+    protected CellStyle ROSE_FILL_NUMBER_ITALIC_STYLE
+    protected CellStyle ROSE_FILL_NUMBER_BOLD_ITALIC_STYLE
 
     protected CellStyle GREEN_FILL_STYLE
     protected CellStyle GREEN_FILL_BOLD_STYLE
@@ -119,7 +130,7 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
 
     KnDiyWorkbook(String fontName = "Calibri Light",
                   int fontSizeIncrease = 0,
-                  String numberFormat = "#.0") {
+                  String numberFormat = "#0.0") {
         this.workbook = new XSSFWorkbook()
         this.creationHelper = workbook.getCreationHelper()
 
@@ -169,6 +180,11 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
         RED_FILL_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT)
         RED_FILL_BOLD_ITALIC_STYLE = createStyleWithFont(BOLD_ITALIC_FONT)
 
+        ROSE_FILL_STYLE = createStyleWithFont(NORMAL_FONT)
+        ROSE_FILL_BOLD_STYLE = createStyleWithFont(BOLD_FONT)
+        ROSE_FILL_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT)
+        ROSE_FILL_BOLD_ITALIC_STYLE = createStyleWithFont(BOLD_ITALIC_FONT)
+
         GREEN_FILL_STYLE = createStyleWithFont(NORMAL_FONT)
         GREEN_FILL_BOLD_STYLE = createStyleWithFont(BOLD_FONT)
         GREEN_FILL_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT)
@@ -199,6 +215,11 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
         RED_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
         RED_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
         RED_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
+
+        ROSE_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
+        ROSE_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
+        ROSE_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
+        ROSE_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
 
         GREEN_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
         GREEN_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
@@ -242,6 +263,8 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
                 BLUE_FILL_NUMBER_STYLE, BLUE_FILL_NUMBER_BOLD_STYLE, BLUE_FILL_NUMBER_ITALIC_STYLE, BLUE_FILL_NUMBER_BOLD_ITALIC_STYLE,
                 YELLOW_FILL_STYLE, YELLOW_FILL_BOLD_STYLE, YELLOW_FILL_ITALIC_STYLE, YELLOW_FILL_BOLD_ITALIC_STYLE,
                 YELLOW_FILL_NUMBER_STYLE, YELLOW_FILL_NUMBER_BOLD_STYLE, YELLOW_FILL_NUMBER_ITALIC_STYLE, YELLOW_FILL_NUMBER_BOLD_ITALIC_STYLE,
+                ROSE_FILL_STYLE, ROSE_FILL_BOLD_STYLE, ROSE_FILL_ITALIC_STYLE, ROSE_FILL_BOLD_ITALIC_STYLE,
+                ROSE_FILL_NUMBER_STYLE, ROSE_FILL_NUMBER_BOLD_STYLE, ROSE_FILL_NUMBER_ITALIC_STYLE, ROSE_FILL_NUMBER_BOLD_ITALIC_STYLE,
         ].each { CellStyle cellStyle ->
             XSSFTools.addBorderToStyle(cellStyle)
             XSSFTools.setCenterAlignmentToStyles(cellStyle)
@@ -251,35 +274,42 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
         applyForeGroundColor([
                 RED_FILL_STYLE, RED_FILL_BOLD_STYLE, RED_FILL_ITALIC_STYLE, RED_FILL_BOLD_ITALIC_STYLE,
                 RED_FILL_NUMBER_STYLE, RED_FILL_NUMBER_BOLD_STYLE, RED_FILL_NUMBER_ITALIC_STYLE, RED_FILL_NUMBER_BOLD_ITALIC_STYLE,
-        ], IndexedColors.CORAL.getIndex())
+        ], [ 244, 67, 54 ])
 
         applyForeGroundColor([
                 GREEN_FILL_STYLE, GREEN_FILL_BOLD_STYLE, GREEN_FILL_ITALIC_STYLE, GREEN_FILL_BOLD_ITALIC_STYLE,
                 GREEN_FILL_NUMBER_STYLE, GREEN_FILL_NUMBER_BOLD_STYLE, GREEN_FILL_NUMBER_ITALIC_STYLE, GREEN_FILL_NUMBER_BOLD_ITALIC_STYLE,
-        ], IndexedColors.LIGHT_GREEN.getIndex())
+        ], [ 33, 150, 243 ])
 
         applyForeGroundColor([
                 GREY_FILL_STYLE, GREY_FILL_BOLD_STYLE, GREY_FILL_ITALIC_STYLE, GREY_FILL_BOLD_ITALIC_STYLE,
                 GREY_FILL_NUMBER_STYLE, GREY_FILL_NUMBER_BOLD_STYLE, GREY_FILL_NUMBER_ITALIC_STYLE, GREY_FILL_NUMBER_BOLD_ITALIC_STYLE,
-        ], IndexedColors.GREY_25_PERCENT.getIndex())
+        ], [ 238, 238, 238 ])
 
         applyForeGroundColor([
                 ORANGE_FILL_STYLE, ORANGE_FILL_BOLD_STYLE, ORANGE_FILL_ITALIC_STYLE, ORANGE_FILL_BOLD_ITALIC_STYLE,
                 ORANGE_FILL_NUMBER_STYLE, ORANGE_FILL_NUMBER_BOLD_STYLE, ORANGE_FILL_NUMBER_ITALIC_STYLE, ORANGE_FILL_NUMBER_BOLD_ITALIC_STYLE
-        ], IndexedColors.LIGHT_ORANGE.getIndex())
+        ], [ 255, 217, 102 ])
 
         applyForeGroundColor([
                 YELLOW_FILL_STYLE, YELLOW_FILL_BOLD_STYLE, YELLOW_FILL_ITALIC_STYLE, YELLOW_FILL_BOLD_ITALIC_STYLE,
                 YELLOW_FILL_NUMBER_STYLE, YELLOW_FILL_NUMBER_BOLD_STYLE, YELLOW_FILL_NUMBER_ITALIC_STYLE, YELLOW_FILL_NUMBER_BOLD_ITALIC_STYLE,
-        ], IndexedColors.LIGHT_YELLOW.getIndex())
+        ], [ 255, 242, 204 ])
 
         applyForeGroundColor([
                 BLUE_FILL_STYLE, BLUE_FILL_BOLD_STYLE, BLUE_FILL_ITALIC_STYLE, BLUE_FILL_BOLD_ITALIC_STYLE,
                 BLUE_FILL_NUMBER_STYLE, BLUE_FILL_NUMBER_BOLD_STYLE, BLUE_FILL_NUMBER_ITALIC_STYLE, BLUE_FILL_NUMBER_BOLD_ITALIC_STYLE,
-        ], IndexedColors.PALE_BLUE.getIndex())
+        ], [ 221, 235, 247 ])
+
+        applyForeGroundColor([
+                ROSE_FILL_STYLE, ROSE_FILL_BOLD_STYLE, ROSE_FILL_ITALIC_STYLE, ROSE_FILL_BOLD_ITALIC_STYLE,
+                ROSE_FILL_NUMBER_STYLE, ROSE_FILL_NUMBER_BOLD_STYLE, ROSE_FILL_NUMBER_ITALIC_STYLE, ROSE_FILL_NUMBER_BOLD_ITALIC_STYLE,
+        ], [ 252, 228, 214 ])
     }
 
-    private void applyForeGroundColor(List<CellStyle> cellStyles, short color) {
+    private void applyForeGroundColor(List<CellStyle> cellStyles, List rgbValues) {
+        XSSFColor color = new XSSFColor(new byte[]{(byte)rgbValues[0], (byte)rgbValues[1], (byte)rgbValues[2]})
+
         cellStyles.each { CellStyle cellStyle ->
             cellStyle.setFillForegroundColor(color)
             cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND)
@@ -306,6 +336,10 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
     }
 
     void createAndSaveWorkbook(String pathToSave) {
+        println("")
+        println("++++++++++++++++++++")
+        println("++++++++++++++++++++")
+        println("")
         println("--Start Writing Workbook at ${pathToSave}")
         writeIntoWorkBook()
         println("--Finished Writing Workbook")

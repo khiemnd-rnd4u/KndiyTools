@@ -46,7 +46,7 @@ class SensorDataResolver {
             dataByTypeByDateTime.each { ZonedDateTime dateTime, Map dataByType ->
                 addReading(sensor, dataByType, dateTime)
             }
-            sensor.resolveAvg()
+            sensor.resolveAvgAndMkt()
 
             if (checkIfEvnSensor(fileName)) {
                 inspection.addEnvironmentSensor(sensor)

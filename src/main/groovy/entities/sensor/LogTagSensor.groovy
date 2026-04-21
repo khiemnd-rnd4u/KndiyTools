@@ -1,6 +1,5 @@
 package entities.sensor
 
-import services.kndiyLibraries.DateTimeResolver
 
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -67,6 +66,8 @@ class LogTagSensor {
     private BigDecimal avgTemperature
     private BigDecimal avgHumidity
 
+    private BigDecimal meanKineticTemperature
+
     LogTagSensor(String idOrSerial,
                  String location,
                  String altitudeLevel = null,
@@ -118,10 +119,37 @@ class LogTagSensor {
         sumHumidity = getSum(humidity, sumHumidity)
     }
 
-    void resolveAvg() {
+    void resolveAvgAndMkt() {
+        resolveAvg()
+        resolveMkt()
+    }
+
+    private void resolveAvg() {
         Integer dataCount = logTagReadingByDateTime?.size()
         avgTemperature = sumTemperature / dataCount
         avgHumidity = sumHumidity / dataCount
+    }
+
+    private void resolveMkt() {
+        BigDecimal DELTA_H = 83.14472
+        BigDecimal GAS_CONST = 0.008314472
+        BigDecimal C_TO_K_ADJ = 273.15
+
+        BigDecimal mktConst = DELTA_H / GAS_CONST
+        BigDecimal sumCompos = 0
+        BigDecimal countCompos = 0
+        logTagReadingByDateTime.each { key, LogTagReading reading ->
+            BigDecimal temperature = reading.getTemperature()
+            BigDecimal temperatureInK = temperature + C_TO_K_ADJ
+
+            BigDecimal compo = Math.exp(-mktConst / temperatureInK)
+            sumCompos += compo
+            countCompos ++
+        }
+
+        BigDecimal mktInK = -mktConst / Math.log(sumCompos / countCompos)
+
+        meanKineticTemperature = mktInK - C_TO_K_ADJ
     }
 
     private void updateMinMaxTime(ZonedDateTime dateTime,
@@ -224,6 +252,10 @@ class LogTagSensor {
 
     BigDecimal getAvgHumidity() {
         return avgHumidity
+    }
+
+    BigDecimal getMeanKineticTemperature() {
+        return meanKineticTemperature
     }
 
     @Override

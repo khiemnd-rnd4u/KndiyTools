@@ -56,6 +56,14 @@ static void runSensorParser() {
     String inspectionAddress = "HCM"
     String inspectionDate = "2026-04-04"
 
+    BigDecimal minTemperatureTolerance = 15
+    BigDecimal maxTemperatureTolerance = 30
+    BigDecimal minHumidityTolerance = 0
+    BigDecimal maxHumidityTolerance = 75
+    Integer locationIdx = 0
+    Integer serialIdx = 2
+    Integer altitudeIdx = null
+
     SensorFolderParser sensorFolderParser = new SensorFolderParser(
             sourceFolder,
             5,
@@ -75,8 +83,16 @@ static void runSensorParser() {
             inspectionId,
             savedFileName,
             inspectionAddress,
-            inspectionDate
+            inspectionDate,
+            minTemperatureTolerance,
+            maxTemperatureTolerance,
+            minHumidityTolerance,
+            maxHumidityTolerance,
+            locationIdx,
+            serialIdx,
+            altitudeIdx
     )
+
     Inspection inspection = sensorDataResolver.getInspection()
     new SensorDistributionReport(inspection, false)
             .createAndSaveWorkbook("${savedPath}${dateTime}_${savedFileName}.xlsx")
