@@ -1,4 +1,4 @@
-package novelParsingService
+package services.novelParsingService
 
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 import org.apache.poi.xwpf.usermodel.XWPFParagraph

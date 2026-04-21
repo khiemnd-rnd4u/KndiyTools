@@ -1,8 +1,6 @@
 package entities
 
-import kndiyLibraries.DataStructure
-
-import javax.xml.crypto.Data
+import services.kndiyLibraries.DataStructure
 
 class Matrix {
     int rowNum

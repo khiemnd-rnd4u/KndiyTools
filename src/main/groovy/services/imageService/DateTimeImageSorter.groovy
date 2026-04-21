@@ -1,4 +1,4 @@
-package imageService
+package services.imageService
 
 class DateTimeImageSorter {
 }

@@ -1,4 +1,4 @@
-package novelParsingService
+package services.novelParsingService
 
 interface ParserInterface {
     List<String> getParagraphTexts()

@@ -1,4 +1,4 @@
-package readTxtNovelParsingService
+package services.readTxtNovelParsingService
 
 
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment

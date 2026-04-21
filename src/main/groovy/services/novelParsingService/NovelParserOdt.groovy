@@ -1,4 +1,4 @@
-//package novelParsingService
+//package services.novelParsingService
 //
 //import org.odftoolkit.odfdom.doc.OdfDocument
 //
