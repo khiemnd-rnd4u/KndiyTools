@@ -64,6 +64,8 @@ static void runSensorParser() {
     Integer serialIdx = 2
     Integer altitudeIdx = null
 
+    boolean hasAltitude = false
+
     SensorFolderParser sensorFolderParser = new SensorFolderParser(
             sourceFolder,
             5,
@@ -94,8 +96,8 @@ static void runSensorParser() {
     )
 
     Inspection inspection = sensorDataResolver.getInspection()
-    new SensorDistributionReport(inspection, false)
+    new SensorDistributionReport(inspection, hasAltitude)
             .createAndSaveWorkbook("${savedPath}${dateTime}_${savedFileName}.xlsx")
-    new SensorReferenceReport(inspection, false)
+    new SensorReferenceReport(inspection, hasAltitude)
             .createAndSaveWorkbook("${savedPath}${dateTime}_ReferenceData_${savedFileName}.xlsx")
 }
