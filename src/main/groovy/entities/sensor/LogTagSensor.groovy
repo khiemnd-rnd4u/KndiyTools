@@ -66,6 +66,9 @@ class LogTagSensor {
     private BigDecimal avgTemperature
     private BigDecimal avgHumidity
 
+    private BigDecimal tempRange
+    private BigDecimal rhRange
+
     private BigDecimal meanKineticTemperature
 
     LogTagSensor(String idOrSerial,
@@ -117,6 +120,9 @@ class LogTagSensor {
 
         sumTemperature = getSum(temperature, sumTemperature)
         sumHumidity = getSum(humidity, sumHumidity)
+
+        tempRange = maxTemperature - minTemperature
+        rhRange = maxHumidity - minHumidity
     }
 
     void resolveAvgAndMkt() {
@@ -256,6 +262,14 @@ class LogTagSensor {
 
     BigDecimal getMeanKineticTemperature() {
         return meanKineticTemperature
+    }
+
+    BigDecimal getTempRange() {
+        return tempRange
+    }
+
+    BigDecimal getRhRange() {
+        return rhRange
     }
 
     @Override

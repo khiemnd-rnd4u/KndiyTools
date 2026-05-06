@@ -157,4 +157,14 @@ class XSSFTools {
 
         return row
     }
+
+    static BigDecimal getNumericCellValue(Cell cell) {
+        try {
+            return cell.getNumericCellValue()
+        }
+        catch (ignored) {
+            return cell.getStringCellValue().toBigDecimal()
+        }
+    }
+
 }

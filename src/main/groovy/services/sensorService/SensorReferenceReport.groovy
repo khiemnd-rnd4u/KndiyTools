@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.PaperSize
 import org.apache.poi.ss.usermodel.PrintSetup
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.xssf.usermodel.XSSFSheet
+import services.kndiyLibraries.KnDiyWorkbook
 import services.kndiyLibraries.XSSFTools
 import services.kndiyLibraries.DateTimeResolver
 
@@ -15,10 +16,12 @@ class SensorReferenceReport extends KnDiyWorkbook {
     private static String ASSET_SHEET_NAME = "DataLoggerDetails"
     private static String TEMPERATURE_REF_SHEET_NAME = "ReferenceTemperature"
     private static String HUMIDITY_REF_SHEET_NAME = "ReferenceHumidity"
+    private static String COMBINE_SHEET_NAME = "Combination"
     private static String REPORT_DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm"
     private XSSFSheet assetSheet
     private XSSFSheet refTemperatureSheet
     private XSSFSheet refHumiditySheet
+    private XSSFSheet combineSheet
 
     private Integer TITLE_ROW_NUM
     private Integer HEADER_ROW_NUM
@@ -42,8 +45,25 @@ class SensorReferenceReport extends KnDiyWorkbook {
     private Integer REF_MAX_TIME_CELL_NUM
     private Integer REF_MIN_CELL_NUM
     private Integer REF_MIN_TIME_CELL_NUM
+    private Integer REF_RANGE_CELL_NUM
     private Integer REF_CONFORM_CELL_NUM
     private Integer REF_END_CELL_NUM
+
+    private Integer COM_LOCATION_CELL_NUM
+    private Integer COM_LOG_SERIAL_CELL_NUM
+    private Integer COM_CALIBRATION_DUE_DATE_CELL_NUM
+    private Integer COM_MIN_TEMP_CELL_NUM
+    private Integer COM_MIN_RH_CELL_NUM
+    private Integer COM_AVG_TEMP_CELL_NUM
+    private Integer COM_AVG_RH_CELL_NUM
+    private Integer COM_MAX_TEMP_CELL_NUM
+    private Integer COM_MAX_RH_CELL_NUM
+    private Integer COM_NOTE_CELL_NUM
+
+    private Integer COM_FIRST_HEADER_ROW_NUM
+    private Integer COM_SECOND_HEADER_ROW_NUM
+    private Integer COM_DATA_START_ROW_NUM
+    private Integer COM_DATA_END_ROW_NUM
 
     private Inspection inspection
     private boolean hasAltitude
@@ -82,8 +102,27 @@ class SensorReferenceReport extends KnDiyWorkbook {
         REF_MAX_TIME_CELL_NUM = ++cellNum
         REF_MIN_CELL_NUM = ++cellNum
         REF_MIN_TIME_CELL_NUM = ++cellNum
+        REF_RANGE_CELL_NUM = ++cellNum
         REF_CONFORM_CELL_NUM = ++cellNum
         REF_END_CELL_NUM = cellNum
+
+        cellNum = 0
+        COM_LOCATION_CELL_NUM = cellNum
+        COM_LOG_SERIAL_CELL_NUM = ++cellNum
+        COM_CALIBRATION_DUE_DATE_CELL_NUM = ++cellNum
+        COM_MIN_TEMP_CELL_NUM = ++cellNum
+        COM_MIN_RH_CELL_NUM = ++cellNum
+        COM_MAX_TEMP_CELL_NUM = ++cellNum
+        COM_MAX_RH_CELL_NUM = ++cellNum
+        COM_AVG_TEMP_CELL_NUM = ++cellNum
+        COM_AVG_RH_CELL_NUM = ++cellNum
+        COM_NOTE_CELL_NUM = ++cellNum
+
+        rowNum = 0
+        COM_FIRST_HEADER_ROW_NUM = rowNum
+        COM_SECOND_HEADER_ROW_NUM = ++rowNum
+        COM_DATA_START_ROW_NUM = ++rowNum
+        COM_DATA_END_ROW_NUM = rowNum + inspection.getSensorCount() - 1
     }
 
     @Override
@@ -92,6 +131,7 @@ class SensorReferenceReport extends KnDiyWorkbook {
         writeAssets()
         writeReferenceTemperature()
         writeReferenceHumidity()
+        writeCombinationSheet()
     }
 
     private void createSheets() {
@@ -100,6 +140,8 @@ class SensorReferenceReport extends KnDiyWorkbook {
         refTemperatureSheet = createSheets(TEMPERATURE_REF_SHEET_NAME)
         println("Created refTemperatureSheet Sheet")
         refHumiditySheet = createSheets(HUMIDITY_REF_SHEET_NAME)
+        println("Created refHumiditySheet Sheet")
+        combineSheet = createSheets(COMBINE_SHEET_NAME)
         println("Created refHumiditySheet Sheet")
     }
 
@@ -133,13 +175,26 @@ class SensorReferenceReport extends KnDiyWorkbook {
         }
         else if (sheetName in [ TEMPERATURE_REF_SHEET_NAME, HUMIDITY_REF_SHEET_NAME ]) {
             setColumnWidth(sheet, NO_CELL_NUM, 5)
-            setColumnWidth(sheet, REF_LOCATION_CELL_NUM, 13)
+            setColumnWidth(sheet, REF_LOCATION_CELL_NUM, 8)
             setColumnWidth(sheet, REF_MAX_CELL_NUM, 10)
             setColumnWidth(sheet, REF_MAX_TIME_CELL_NUM, 12)
             setColumnWidth(sheet, REF_AVG_CELL_NUM, 10)
             setColumnWidth(sheet, REF_MIN_CELL_NUM, 10)
             setColumnWidth(sheet, REF_MIN_TIME_CELL_NUM, 12)
-            setColumnWidth(sheet, REF_CONFORM_CELL_NUM, 20)
+            setColumnWidth(sheet, REF_RANGE_CELL_NUM, 8)
+            setColumnWidth(sheet, REF_CONFORM_CELL_NUM, 12)
+        }
+        else if (sheetName == COMBINE_SHEET_NAME) {
+            setColumnWidth(sheet, COM_LOCATION_CELL_NUM, 8)
+            setColumnWidth(sheet, COM_LOG_SERIAL_CELL_NUM, 13)
+            setColumnWidth(sheet, COM_CALIBRATION_DUE_DATE_CELL_NUM, 12)
+            setColumnWidth(sheet, COM_MIN_TEMP_CELL_NUM, 8)
+            setColumnWidth(sheet, COM_MIN_RH_CELL_NUM, 8)
+            setColumnWidth(sheet, COM_MAX_TEMP_CELL_NUM, 8)
+            setColumnWidth(sheet, COM_MAX_RH_CELL_NUM, 8)
+            setColumnWidth(sheet, COM_AVG_TEMP_CELL_NUM, 8)
+            setColumnWidth(sheet, COM_AVG_RH_CELL_NUM, 8)
+            setColumnWidth(sheet, COM_NOTE_CELL_NUM, 8)
         }
 
         return sheet
@@ -384,12 +439,21 @@ class SensorReferenceReport extends KnDiyWorkbook {
         )
 
         XSSFTools.setCellValue(
+                sheet, HEADER_ROW_NUM, REF_RANGE_CELL_NUM, GREY_FILL_BOLD_STYLE,
+                "Chênh lệch"
+        )
+        XSSFTools.setCellValue(
+                sheet, HEADER_EN_ROW_NUM, REF_RANGE_CELL_NUM, GREY_FILL_BOLD_ITALIC_STYLE,
+                "Min-Max Range"
+        )
+
+        XSSFTools.setCellValue(
                 sheet, HEADER_ROW_NUM, REF_CONFORM_CELL_NUM, GREY_FILL_BOLD_STYLE,
                 "ĐẠT/\nKHÔNG ĐẠT"
         )
         XSSFTools.setCellValue(
                 sheet, HEADER_EN_ROW_NUM, REF_CONFORM_CELL_NUM, GREY_FILL_BOLD_ITALIC_STYLE,
-                "Conformed/\nNone Conformed"
+                "C/\nNC"
         )
     }
 
@@ -457,11 +521,183 @@ class SensorReferenceReport extends KnDiyWorkbook {
                 )
         )
 
+        BigDecimal range = isTemp ? logTag.getTempRange() : logTag.getRhRange()
+        XSSFTools.setCellValue(
+                sheet, rowNum, REF_RANGE_CELL_NUM,
+                getCellStyleForMaxMinValue(
+                        inspection,
+                        range,
+                        RED_FILL_NUMBER_STYLE, WRAP_NUMBER_STYLE, WRAP_NUMBER_STYLE,
+                        isTemp, true
+                ),
+                range
+        )
+
         XSSFTools.setCellValue(
                 sheet, rowNum, REF_CONFORM_CELL_NUM, WRAP_STYLE,
                 Inspection.getConformedState(
                         inspection, logTag, isTemp
                 )
+        )
+    }
+
+    private void writeCombinationSheet() {
+        writeCombinationHeaders()
+        writeCombinationData()
+    }
+
+    private void writeCombinationHeaders() {
+        XSSFTools.styleMergeCells(
+                combineSheet,
+                COM_FIRST_HEADER_ROW_NUM, COM_SECOND_HEADER_ROW_NUM,
+                COM_LOCATION_CELL_NUM,
+                COM_LOCATION_CELL_NUM,
+                WRAP_BOLD_ITALIC_STYLE,
+                "Vị trí"
+        )
+
+        XSSFTools.styleMergeCells(
+                combineSheet,
+                COM_FIRST_HEADER_ROW_NUM, COM_SECOND_HEADER_ROW_NUM,
+                COM_LOG_SERIAL_CELL_NUM,
+                COM_LOG_SERIAL_CELL_NUM,
+                WRAP_BOLD_ITALIC_STYLE,
+                "Mã số thiết bị"
+        )
+
+        XSSFTools.styleMergeCells(
+                combineSheet,
+                COM_FIRST_HEADER_ROW_NUM, COM_SECOND_HEADER_ROW_NUM,
+                COM_CALIBRATION_DUE_DATE_CELL_NUM,
+                COM_CALIBRATION_DUE_DATE_CELL_NUM,
+                WRAP_BOLD_ITALIC_STYLE,
+                "Ngày hiệu chuẩn kế tiếp"
+        )
+
+        XSSFTools.styleMergeCells(
+                combineSheet,
+                COM_FIRST_HEADER_ROW_NUM, COM_FIRST_HEADER_ROW_NUM,
+                COM_MIN_TEMP_CELL_NUM,
+                COM_AVG_RH_CELL_NUM,
+                WRAP_BOLD_ITALIC_STYLE,
+                "Nhiệt độ (°C) - Độ ẩm (%RH)"
+        )
+
+        XSSFTools.styleMergeCells(
+                combineSheet,
+                COM_SECOND_HEADER_ROW_NUM, COM_SECOND_HEADER_ROW_NUM,
+                COM_MIN_TEMP_CELL_NUM,
+                COM_MIN_RH_CELL_NUM,
+                WRAP_BOLD_ITALIC_STYLE,
+                "Thấp nhất"
+        )
+
+        XSSFTools.styleMergeCells(
+                combineSheet,
+                COM_SECOND_HEADER_ROW_NUM, COM_SECOND_HEADER_ROW_NUM,
+                COM_MAX_TEMP_CELL_NUM,
+                COM_MAX_RH_CELL_NUM,
+                WRAP_BOLD_ITALIC_STYLE,
+                "Cao nhất"
+        )
+
+        XSSFTools.styleMergeCells(
+                combineSheet,
+                COM_SECOND_HEADER_ROW_NUM, COM_SECOND_HEADER_ROW_NUM,
+                COM_AVG_TEMP_CELL_NUM,
+                COM_AVG_RH_CELL_NUM,
+                WRAP_BOLD_ITALIC_STYLE,
+                "Trung bình"
+        )
+
+        XSSFTools.styleMergeCells(
+                combineSheet,
+                COM_FIRST_HEADER_ROW_NUM, COM_SECOND_HEADER_ROW_NUM,
+                COM_NOTE_CELL_NUM,
+                COM_NOTE_CELL_NUM,
+                WRAP_BOLD_ITALIC_STYLE,
+                "Ghi chú"
+        )
+    }
+
+    private void writeCombinationData() {
+        int rowNum = COM_DATA_START_ROW_NUM - 1
+        inspection.getLogTagSensorByLocation().each { String location, LogTagSensor logTag ->
+            writeCombinationData(logTag, ++rowNum)
+        }
+        writeCombinationData(inspection.getEnvironmentSensor(), ++rowNum)
+    }
+
+    private void writeCombinationData(LogTagSensor logTag, int rowNum) {
+        XSSFTools.setCellValue(
+                combineSheet,
+                rowNum, COM_LOCATION_CELL_NUM,
+                WRAP_STYLE,
+                logTag.getLocation(),
+                HEADER_ROW_HEIGHT
+        )
+
+        XSSFTools.setCellValue(
+                combineSheet,
+                rowNum, COM_LOG_SERIAL_CELL_NUM,
+                WRAP_STYLE,
+                logTag.getSerial()
+        )
+
+        XSSFTools.setCellValue(
+                combineSheet,
+                rowNum, COM_CALIBRATION_DUE_DATE_CELL_NUM,
+                WRAP_STYLE,
+                DateTimeResolver.getDateString(logTag.getCalibration().getCalibrationDueDate())
+        )
+
+        XSSFTools.setCellValue(
+                combineSheet,
+                rowNum, COM_MIN_TEMP_CELL_NUM,
+                WRAP_NUMBER_STYLE,
+                logTag.getMinTemperature()
+        )
+
+        XSSFTools.setCellValue(
+                combineSheet,
+                rowNum, COM_MIN_RH_CELL_NUM,
+                WRAP_NUMBER_STYLE,
+                logTag.getMinHumidity()
+        )
+
+        XSSFTools.setCellValue(
+                combineSheet,
+                rowNum, COM_MAX_TEMP_CELL_NUM,
+                WRAP_NUMBER_STYLE,
+                logTag.getMaxTemperature()
+        )
+
+        XSSFTools.setCellValue(
+                combineSheet,
+                rowNum, COM_MAX_RH_CELL_NUM,
+                WRAP_NUMBER_STYLE,
+                logTag.getMaxHumidity()
+        )
+
+        XSSFTools.setCellValue(
+                combineSheet,
+                rowNum, COM_AVG_TEMP_CELL_NUM,
+                WRAP_NUMBER_STYLE,
+                logTag.getAvgTemperature()
+        )
+
+        XSSFTools.setCellValue(
+                combineSheet,
+                rowNum, COM_AVG_RH_CELL_NUM,
+                WRAP_NUMBER_STYLE,
+                logTag.getAvgHumidity()
+        )
+
+        XSSFTools.setCellValue(
+                combineSheet,
+                rowNum, COM_NOTE_CELL_NUM,
+                WRAP_STYLE,
+                ""
         )
     }
 }

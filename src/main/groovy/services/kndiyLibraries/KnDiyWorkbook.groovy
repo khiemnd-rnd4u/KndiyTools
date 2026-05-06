@@ -1,4 +1,4 @@
-package services.sensorService
+package services.kndiyLibraries
 
 import entities.sensor.Inspection
 import org.apache.poi.ss.usermodel.CellStyle
@@ -10,7 +10,6 @@ import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.xssf.usermodel.XSSFColor
 import org.apache.poi.xssf.usermodel.XSSFFont
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import services.kndiyLibraries.XSSFTools
 
 abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
     protected XSSFWorkbook workbook
@@ -128,9 +127,17 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
     static Integer LS_MAX_CHARACTERS = 120
     static Integer PT_MAX_CHARACTERS = 85
 
-    KnDiyWorkbook(String fontName = "Calibri Light",
-                  int fontSizeIncrease = 0,
-                  String numberFormat = "#0.0") {
+    static final String DEFAULT_FONT_NAME = "Calibri Light"
+    static final String DEFAULT_NUMBER_FORMAT = "#0.0"
+    static final int DEFAULT_FONT_SIZE_INCREASE = 0
+
+    KnDiyWorkbook(String fontName = null,
+                  Integer fontSizeIncrease = null,
+                  String numberFormat = null) {
+        fontName = fontName ? fontName : DEFAULT_FONT_NAME
+        numberFormat = numberFormat ? numberFormat : DEFAULT_NUMBER_FORMAT
+        fontSizeIncrease = fontSizeIncrease ? fontSizeIncrease : DEFAULT_FONT_SIZE_INCREASE
+
         this.workbook = new XSSFWorkbook()
         this.creationHelper = workbook.getCreationHelper()
 
@@ -359,11 +366,17 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
                                                 CellStyle maxStyle,
                                                 CellStyle minStyle,
                                                 CellStyle defaultStyle,
-                                                boolean isTemp) {
+                                                boolean isTemp,
+                                                boolean isRange = false) {
         BigDecimal allTimeMaxTemp = inspection.getAllTimeMaxTemperature()
         BigDecimal allTimeMinTemp = inspection.getAllTimeMinTemperature()
         BigDecimal allTimeMaxHum = inspection.getAllTimeMaxHumidity()
         BigDecimal allTimeMinHum = inspection.getAllTimeMinHumidity()
+
+        if (isRange) {
+            allTimeMaxTemp = inspection.getLargestTempRange()
+            allTimeMaxHum = inspection.getLargestRhRange()
+        }
 
         boolean isMax = isTemp ? value == allTimeMaxTemp : value == allTimeMaxHum
         boolean isMin = isTemp ? value == allTimeMinTemp : value == allTimeMinHum

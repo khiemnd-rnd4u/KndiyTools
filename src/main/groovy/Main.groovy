@@ -1,16 +1,15 @@
 import entities.Matrix
 import entities.sensor.Inspection
-import services.kndiyLibraries.DateTimeResolver
+import services.inventories.InventoryReader
+import services.inventories.InventoryReport
 import services.novelParsingService.NovelProcessor
 import services.sensorService.SensorDataResolver
 import services.sensorService.SensorDistributionReport
 import services.sensorService.SensorFolderParser
 import services.sensorService.SensorReferenceReport
 
-import java.time.ZonedDateTime
-
 static void main(String[] args) {
-    runSensorParser()
+    runInventoryParser()
 }
 
 static void runMatrixTesting() {
@@ -48,13 +47,15 @@ static void runNovelParser(String sourcePath, String outputPath, String template
 }
 
 static void runSensorParser() {
-    String sourceFolder = "D:\\Documents\\Personal\\00 Family Small\\Projects\\260407 Kiem Dinh Kho Viet An\\Final Arrangement\\Official Test\\PhongNgoai"
-    String savedFileName = "Kho_Viet_An"
-    String savedPath = "D:\\"
+    String temp = "3"
+    String sourceFolder = "D:\\Documents\\Personal\\00 Family Small\\Projects\\260407 Kiem Dinh Kho Viet An\\Final Arrangement\\Xe\\Lan${temp}"
+    String savedFileName = "XeVanChuyen_51K768.20_Lan${temp}"
+    String savedPath = "D:\\Documents\\Personal\\00 Family Small\\Projects\\260407 Kiem Dinh Kho Viet An\\Final Arrangement"
 
-    String inspectionId = "VietAn_20260407"
-    String inspectionAddress = "HCM"
-    String inspectionDate = "2026-04-04"
+    String inspectionId = savedFileName
+    String inspectionName = "Xe vận chuyển 51K-768.20 Lần ${temp}"
+    String inspectionAddress = "32/47 Phan Sào Nam, phường Bảy Hiền, TP.HCM"
+    String inspectionDate = "2026-03-29"
 
     BigDecimal minTemperatureTolerance = 15
     BigDecimal maxTemperatureTolerance = 30
@@ -71,19 +72,17 @@ static void runSensorParser() {
             5,
             2, 0, 1,
             4, 3,
-            15
+            10
     )
     ////////////////////// DON'T TOUCH BELOW
     ////////////////////// DON'T TOUCH BELOW
     ////////////////////// DON'T TOUCH BELOW
-    String dateTime = DateTimeResolver.getDateTimeString(ZonedDateTime.now(), "yyyyMMdd_HHmm")
-
     TreeMap rawData = sensorFolderParser.parseFilesInFolderAndGetRawData()
 
     SensorDataResolver sensorDataResolver = new SensorDataResolver(
             rawData,
             inspectionId,
-            savedFileName,
+            inspectionName,
             inspectionAddress,
             inspectionDate,
             minTemperatureTolerance,
@@ -95,9 +94,27 @@ static void runSensorParser() {
             altitudeIdx
     )
 
+    if (!savedPath.endsWith("\\")) {
+        savedPath += "\\"
+    }
+
     Inspection inspection = sensorDataResolver.getInspection()
     new SensorDistributionReport(inspection, hasAltitude)
-            .createAndSaveWorkbook("${savedPath}${dateTime}_${savedFileName}.xlsx")
+            .createAndSaveWorkbook("${savedPath}${inspectionDate}_${savedFileName}.xlsx")
     new SensorReferenceReport(inspection, hasAltitude)
-            .createAndSaveWorkbook("${savedPath}${dateTime}_ReferenceData_${savedFileName}.xlsx")
+            .createAndSaveWorkbook("${savedPath}${inspectionDate}_${savedFileName}_ReferenceData.xlsx")
 }
+
+static void runInventoryParser() {
+    InventoryReader inventoryReader = new InventoryReader(
+            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260503 Nhap Xuat Ton Ario\\NXT\\2025",
+            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260503 Nhap Xuat Ton Ario\\ProductMaster.xlsx"
+    )
+
+    InventoryReport inventoryReport = new InventoryReport(
+            inventoryReader,
+            ""
+    )
+    inventoryReport.createAndSaveWorkbook("D:\\Documents\\Personal\\00 Family Small\\Projects\\260503 Nhap Xuat Ton Ario\\Test.xlsx")
+}
+

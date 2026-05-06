@@ -27,6 +27,7 @@ import org.apache.poi.xssf.usermodel.XSSFChart
 import org.apache.poi.xssf.usermodel.XSSFDrawing
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import services.kndiyLibraries.DateTimeResolver
+import services.kndiyLibraries.KnDiyWorkbook
 import services.kndiyLibraries.XSSFTools
 
 import java.math.RoundingMode
@@ -296,7 +297,10 @@ class SensorDistributionReport extends KnDiyWorkbook {
     private void writeMinToleranceData(Sheet sheet, boolean isTemp = true) {
         BigDecimal value = isTemp ? inspection.getMinTemperatureTolerance() : inspection.getMinHumidityTolerance()
 
-        ((isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER)..DATA_END_TEMP_ROW_NUMBER).each { Integer rowNumber ->
+        int startRow = isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER
+        int endRow = isTemp ? DATA_END_TEMP_ROW_NUMBER : DATA_END_RH_ROW_NUMBER
+
+        (startRow..endRow).each { Integer rowNumber ->
             XSSFTools.setCellValue(sheet, rowNumber, MIN_TOLERANCE_CELL_NUMBER, WRAP_NUMBER_STYLE, value)
         }
     }
@@ -304,9 +308,16 @@ class SensorDistributionReport extends KnDiyWorkbook {
     private void writeMaxToleranceData(Sheet sheet, boolean isTemp = true) {
         BigDecimal value = isTemp ? inspection.getMaxTemperatureTolerance() : inspection.getMaxHumidityTolerance()
 
-        ((isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER)..DATA_END_TEMP_ROW_NUMBER).each { Integer rowNumber ->
+        getStartRowEndRowRange(isTemp).each { Integer rowNumber ->
             XSSFTools.setCellValue(sheet, rowNumber, MAX_TOLERANCE_CELL_NUMBER, WRAP_NUMBER_STYLE, value)
         }
+    }
+
+    private List getStartRowEndRowRange(boolean isTemp) {
+        int startRow = isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER
+        int endRow = isTemp ? DATA_END_TEMP_ROW_NUMBER : DATA_END_RH_ROW_NUMBER
+
+        return (startRow..endRow)
     }
 
     private void writeDataLogMeta(Sheet sheet) {
@@ -319,6 +330,9 @@ class SensorDistributionReport extends KnDiyWorkbook {
     }
 
     private void writeDataLogMeta(Sheet sheet, int currentCellNumber, LogTagSensor logTag) {
+        if (!logTag) {
+            return
+        }
         String serial = logTag.getSerial()
         cellNumberByLogTagSerial[ serial ] = currentCellNumber
 
@@ -349,6 +363,9 @@ class SensorDistributionReport extends KnDiyWorkbook {
     }
 
     private void writeIndicators(Sheet sheet, LogTagSensor logTag, boolean isTemp) {
+        if (!logTag) {
+            return
+        }
         Integer cellNum = getCellNumber(logTag)
 
         BigDecimal min = isTemp ? logTag.getMinTemperature() : logTag.getMinHumidity()
@@ -398,7 +415,13 @@ class SensorDistributionReport extends KnDiyWorkbook {
             Integer cellNum = getCellNumber(logTag)
             Integer idx = 1
             logTag.getLogTagReadingByDateTime().each { ZonedDateTime dateTime, LogTagReading reading ->
-                LogTagReading envReading = inspection.getEnvironmentSensor().getReading(dateTime)
+                if (!inspection || !logTag) {
+                    return
+                }
+                LogTagReading envReading = inspection.getEnvironmentSensor()?.getReading(dateTime)
+                if (!envReading) {
+                    return
+                }
                 writeData(temperatureSheet, reading, tempRowNum, cellNum, true, idx, dateTime)
                 writeData(temperatureSheet, envReading, tempRowNum, envCellNum,  true, idx, dateTime)
                 writeData(humiditySheet, reading, rhRowNum, cellNum,  false, idx, dateTime)
@@ -412,6 +435,10 @@ class SensorDistributionReport extends KnDiyWorkbook {
     }
 
     private Integer getCellNumber(LogTagSensor sensor) {
+        if (!sensor) {
+            return
+        }
+
         String serial = sensor.getSerial()
         return cellNumberByLogTagSerial?.getAt(serial)
     }
@@ -468,14 +495,14 @@ class SensorDistributionReport extends KnDiyWorkbook {
         leftAxis.setCrosses(AxisCrosses.MIN)
 
         XDDFDataSource timeSource = XDDFDataSourcesFactory.fromStringCellRange(sourceSheet, new CellRangeAddress(
-                (isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER), DATA_END_TEMP_ROW_NUMBER, TIME_CELL_NUMBER, TIME_CELL_NUMBER
+                getStartRowEndRowRange(isTemp)?.getFirst(), getStartRowEndRowRange(isTemp)?.getLast(), TIME_CELL_NUMBER, TIME_CELL_NUMBER
         ))
 
         Row headerRow = sourceSheet.getRow(HEADER_LOCATION_AND_ALTITUDE_ROW)
         XDDFChartData data = chart.createData(ChartTypes.LINE, bottomAxis, leftAxis)
         (DATA_START_CELL_NUMBER..DATA_END_CELL_NUMBER).each { int cellNumber ->
             XDDFNumericalDataSource valueSource = XDDFDataSourcesFactory.fromNumericCellRange(sourceSheet, new CellRangeAddress(
-                    (isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER), DATA_END_TEMP_ROW_NUMBER, cellNumber, cellNumber
+                    getStartRowEndRowRange(isTemp)?.getFirst(), getStartRowEndRowRange(isTemp)?.getLast(), cellNumber, cellNumber
             ))
 
             XDDFChartData.Series series = data.addSeries(timeSource, valueSource)
@@ -496,7 +523,7 @@ class SensorDistributionReport extends KnDiyWorkbook {
 
         [MIN_TOLERANCE_CELL_NUMBER, MAX_TOLERANCE_CELL_NUMBER ].each { int cellNumber ->
             XDDFNumericalDataSource valueSource = XDDFDataSourcesFactory.fromNumericCellRange(sourceSheet, new CellRangeAddress(
-                    (isTemp ? DATA_START_TEMP_ROW_NUMBER : DATA_START_RH_ROW_NUMBER), DATA_END_TEMP_ROW_NUMBER, cellNumber, cellNumber
+                    getStartRowEndRowRange(isTemp)?.getFirst(), getStartRowEndRowRange(isTemp)?.getLast(), cellNumber, cellNumber
             ))
 
             XDDFChartData.Series series = data.addSeries(timeSource, valueSource)

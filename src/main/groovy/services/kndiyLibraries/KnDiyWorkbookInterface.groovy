@@ -1,4 +1,4 @@
-package services.sensorService
+package services.kndiyLibraries
 
 interface KnDiyWorkbookInterface {
     void writeIntoWorkBook()

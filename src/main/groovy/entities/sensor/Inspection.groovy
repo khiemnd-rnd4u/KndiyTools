@@ -24,14 +24,17 @@ class Inspection {
     private BigDecimal allTimeMinHumidity
     private BigDecimal allTimeMaxHumidity
 
+    private BigDecimal largestTempRange
+    private BigDecimal largestRhRange
+
     private Integer sensorCount
     private Integer maxDataCount
 
     private ZonedDateTime fromTime
     private ZonedDateTime toTime
 
-    static String NONE_CONFORMED_MESSAGE = "KHÔNG ĐẠT/\nNone Conformed"
-    static String CONFORMED_MESSAGE = "ĐẠT/\nConformed"
+    static String NONE_CONFORMED_MESSAGE = "KHÔNG ĐẠT/ NC"
+    static String CONFORMED_MESSAGE = "ĐẠT/ C"
 
     Inspection(String id,
                String name,
@@ -86,6 +89,9 @@ class Inspection {
 
         allTimeMinHumidity = LogTagSensor.getMin(logTagSensor.getMinHumidity(), allTimeMinHumidity)
         allTimeMaxHumidity = LogTagSensor.getMax(logTagSensor.getMaxHumidity(), allTimeMaxHumidity)
+
+        largestTempRange = LogTagSensor.getMax(logTagSensor.getTempRange(), largestTempRange)
+        largestRhRange = LogTagSensor.getMax(logTagSensor.getRhRange(), largestRhRange)
 
         TreeSet<ZonedDateTime> dateTimeStamps = logTagSensor.getLogTagReadingByDateTime()?.keySet()
         ZonedDateTime fromTime = dateTimeStamps.getFirst()
@@ -234,6 +240,14 @@ class Inspection {
 
     Integer getMaxDataCount() {
         return maxDataCount
+    }
+
+    BigDecimal getLargestTempRange() {
+        return largestTempRange
+    }
+
+    BigDecimal getLargestRhRange() {
+        return largestRhRange
     }
 
     @Override
