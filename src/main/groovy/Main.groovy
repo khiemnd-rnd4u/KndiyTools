@@ -2,6 +2,7 @@ import entities.Matrix
 import entities.sensor.Inspection
 import services.inventories.InventoryReader
 import services.inventories.InventoryReport
+import services.kndiyLibraries.DateTimeResolver
 import services.novelParsingService.NovelProcessor
 import services.sensorService.SensorDataResolver
 import services.sensorService.SensorDistributionReport
@@ -106,15 +107,26 @@ static void runSensorParser() {
 }
 
 static void runInventoryParser() {
-    InventoryReader inventoryReader = new InventoryReader(
-            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260503 Nhap Xuat Ton Ario\\NXT\\2025",
-            "D:\\Documents\\Personal\\00 Family Small\\Projects\\260503 Nhap Xuat Ton Ario\\ProductMaster.xlsx"
-    )
+    String folderPath = "D:\\Documents\\Personal\\00 Family Small\\Projects\\260503 Nhap Xuat Ton Ario\\NXT\\2025"
+    String productMasterPath = "D:\\Documents\\Personal\\00 Family Small\\Projects\\260503 Nhap Xuat Ton Ario\\ProductMaster.xlsx"
+    String lastInventoryReportPath = "D:\\Documents\\Personal\\00 Family Small\\Projects\\260503 Nhap Xuat Ton Ario\\250101-250331 Bao Cao Nhap Xuat Ton Ario.xlsx"
+    String savePath = "D:\\Documents\\Personal\\00 Family Small\\Projects\\260503 Nhap Xuat Ton Ario"
+    String savedFileName = "Bao Cao Nhap Xuat Ton Ario"
 
-    InventoryReport inventoryReport = new InventoryReport(
-            inventoryReader,
-            ""
-    )
-    inventoryReport.createAndSaveWorkbook("D:\\Documents\\Personal\\00 Family Small\\Projects\\260503 Nhap Xuat Ton Ario\\Test.xlsx")
+    /////////////////////// DON'T TOUCH BELOW
+    /////////////////////// DON'T TOUCH BELOW
+    /////////////////////// DON'T TOUCH BELOW
+    InventoryReader inventoryReader = new InventoryReader(folderPath, productMasterPath)
+    InventoryReport inventoryReport = new InventoryReport(inventoryReader, lastInventoryReportPath)
+    inventoryReport.createWorkbook()
+
+    if (!savePath.endsWith("\\")) {
+        savePath += "\\"
+    }
+    String dateFormat = "yyMMdd"
+    savePath += "${DateTimeResolver.getDateString(inventoryReport.getFromDate(), dateFormat)}" +
+            "-${DateTimeResolver.getDateString(inventoryReport.getToDate(), dateFormat)}" +
+            " ${savedFileName}.xlsx"
+    inventoryReport.saveWorkbook(savePath)
 }
 

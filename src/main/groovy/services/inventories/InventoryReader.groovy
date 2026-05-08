@@ -1,15 +1,16 @@
 package services.inventories
 
 import entities.inventories.CustomerMaster
+import entities.inventories.MaterialNorm
 import entities.inventories.ProductMaster
 import entities.inventories.StockContent
 import entities.inventories.StockEntry
+import groovyjarjarantlr4.runtime.tree.Tree
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import services.kndiyLibraries.DateTimeResolver
 import services.kndiyLibraries.KndiyFormatter
 import services.kndiyLibraries.XSSFTools
 
@@ -26,6 +27,13 @@ class InventoryReader {
     private static final int PM_FAMILY_CELL_NUM = 2
     private static final int PM_LABEL_CELL_NUM = 3
     private static final int PM_UOM_CELL_NUM = 4
+    private static final int PM_PROCESSING_TARGET_CELL_NUM = 5
+
+    private static final int MN_DATE_CELL_NUM = 0
+    private static final int MN_ITEM_LABEL_CELL_NUM = 1
+    private static final int MN_MATERIAL_LABEL_CELL_NUM = 2
+    private static final int MN_MATERIAL_UOM_CELL_NUM = 3
+    private static final int MN_NORM_AMOUNT_CELL_NUM = 4
 
     private int VOUCHER_ID_CELL_NUM
     private int DATE_CELL_NUM
@@ -52,7 +60,9 @@ class InventoryReader {
     private Map customerMasterByName
 
     private TreeMap<ZonedDateTime, Map<String, List<StockContent>>> outStockContentsByItemLabelByDate
-    private TreeMap<ZonedDateTime, Map<String, List<StockContent>>> inStockContentsByItemLabelByDate
+    private TreeMap<ZonedDateTime, TreeMap<String, List<StockContent>>> inStockContentsByItemLabelByDate
+
+    private TreeMap<ZonedDateTime, Map<String, MaterialNorm>> materialNormByTargetSkuByDate
 
     InventoryReader(String folderPath,
                     String productMasterPath) {
@@ -64,13 +74,13 @@ class InventoryReader {
             String fileName = file.getName()
             String filePath = file.getAbsolutePath()
             if (fileName.startsWith(STOCK_IN_STARTS_WITH)) {
-                stockInBooks.add(getWorkbook(filePath))
+                stockInBooks.add(XSSFTools.getWorkbook(filePath))
             }
             else if (fileName.startsWith(STOCK_OUT_STARTS_WITH)) {
-                stockOutBooks.add(getWorkbook(filePath))
+                stockOutBooks.add(XSSFTools.getWorkbook(filePath))
             }
         }
-        productMasterBook = getWorkbook(productMasterPath)
+        productMasterBook = XSSFTools.getWorkbook(productMasterPath)
 
         productMasterByItemLabel = [: ]
         productMasterBySku = [: ]
@@ -78,6 +88,7 @@ class InventoryReader {
 
         outStockContentsByItemLabelByDate = new TreeMap<>((ZonedDateTime d1, ZonedDateTime d2) -> { return d1 <=> d2 })
         inStockContentsByItemLabelByDate = new TreeMap<>((ZonedDateTime d1, ZonedDateTime d2) -> { return d1 <=> d2 })
+        materialNormByTargetSkuByDate = new TreeMap<>((ZonedDateTime d1, ZonedDateTime d2) -> { return d1 <=> d2 })
 
         DATE_CELL_FORMATTER = new SimpleDateFormat("yyyy-MM-dd")
 
@@ -93,6 +104,9 @@ class InventoryReader {
 
         buildStockData(stockOutBooks, StockEntry.TYPE_STOCK_OUT)
         println("Built Stock out Data")
+
+        buildMaterialNormData()
+        println("Built Material Norm Data")
     }
 
     private void buildStockData(List<XSSFWorkbook> workbooks,
@@ -124,9 +138,7 @@ class InventoryReader {
 
     private StockEntry addStockEntry(CustomerMaster customerMaster, Row row, String type) {
         String voucherId = KndiyFormatter.getStringWithoutRedundantSpaces(row.getCell(VOUCHER_ID_CELL_NUM).getStringCellValue())
-
-        String dateStr = DATE_CELL_FORMATTER.format(row.getCell(DATE_CELL_NUM).getDateCellValue())
-        ZonedDateTime date = DateTimeResolver.getZonedDateTime(dateStr)
+        ZonedDateTime date = XSSFTools.readDateTimeFromCell(row, DATE_CELL_NUM, DATE_CELL_FORMATTER)
 
         return customerMaster.getOrSetStockEntry(voucherId, type, date)
     }
@@ -151,8 +163,29 @@ class InventoryReader {
         StockContent stockContent = stockEntry.addStockContent(productMaster, uom, quantity, unitPrice, value, tax, valueWithTax, taxRate)
 
         if (type == StockEntry.TYPE_STOCK_IN) {
-            Map<String, List<StockContent>> inStockContentsByItemLabel = inStockContentsByItemLabelByDate.get(stockEntry.getDate(), [ : ])
-            List<StockContent> stockInContents = inStockContentsByItemLabel.get(itemLabel, [ ])
+            TreeMap<String, List<StockContent>> inStockContentsByItemLabel = inStockContentsByItemLabelByDate.get(
+                    stockEntry.getDate(),
+                    new TreeMap<>((String label1, String label2) ->{
+                        ProductMaster productMaster1 = productMasterByItemLabel[ label1 ]
+                        ProductMaster productMaster2 = productMasterByItemLabel[ label2 ]
+
+                        String family1 = productMaster1.getItemFamily()
+                        String family2 = productMaster2.getItemFamily()
+                        if (family1 == ProductMaster.FAMILY_PROCESSED_GOODS) {
+                            return 1
+                        }
+                        if (family2 == ProductMaster.FAMILY_PROCESSED_GOODS) {
+                            return -1
+                        }
+
+                        return label1 <=> label2
+                    })
+            )
+            List<StockContent> stockInContents = inStockContentsByItemLabel[ itemLabel ]
+            if (!stockInContents) {
+                stockInContents = [ ]
+                inStockContentsByItemLabel[ itemLabel ] = stockInContents
+            }
             stockInContents.add(stockContent)
         }
         else if (type == StockEntry.TYPE_STOCK_OUT) {
@@ -216,41 +249,46 @@ class InventoryReader {
         }
     }
 
-    private XSSFWorkbook getWorkbook(String filePath) {
-        try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
-            return new XSSFWorkbook(fileInputStream)
-        }
-    }
-
     private void buildProductMasterData() {
         Sheet sheet = productMasterBook.getSheet("ProductMaster")
         for (Row row : sheet) {
             if (row.getRowNum() == 0) {
                 continue
             }
-            Cell skuCell = row.getCell(PM_SKU_CELL_NUM)
-            Cell labelCell = row.getCell(PM_LABEL_CELL_NUM)
-            Cell familyCell = row.getCell(PM_FAMILY_CELL_NUM)
-            Cell uomCell = row.getCell(PM_UOM_CELL_NUM)
+            String sku = XSSFTools.readStringFromCell(row, PM_SKU_CELL_NUM)
+            String label = XSSFTools.readStringFromCell(row, PM_LABEL_CELL_NUM)
+            String family = XSSFTools.readStringFromCell(row, PM_FAMILY_CELL_NUM)
+            String uom = XSSFTools.readStringFromCell(row, PM_UOM_CELL_NUM)
+            String processingTarget = XSSFTools.readStringFromCell(row, PM_PROCESSING_TARGET_CELL_NUM)
 
-            String sku
-            String label
-            String family
-            String uom
+            ProductMaster productMaster = productMasterBySku.get(sku, new ProductMaster(sku, label, family, uom, processingTarget))
+            productMasterByItemLabel[ label ] = productMaster
+        }
+    }
 
-            try {
-                sku = KndiyFormatter.getStringWithoutRedundantSpaces(skuCell.getStringCellValue())
-                label = KndiyFormatter.getStringWithoutRedundantSpaces(labelCell.getStringCellValue())
-                family = KndiyFormatter.getStringWithoutRedundantSpaces(familyCell.getStringCellValue())
-                uom = KndiyFormatter.getStringWithoutRedundantSpaces(uomCell.getStringCellValue())
-            }
-            catch (ignored) {
-                println(ignored.getMessage())
+    private void buildMaterialNormData() {
+        XSSFSheet sheet = productMasterBook.getSheet("MaterialNorm")
+        for (Row row : sheet) {
+            if (row.getRowNum() == 0) {
                 continue
             }
+            ZonedDateTime date = XSSFTools.readDateTimeFromCell(row, MN_DATE_CELL_NUM, DATE_CELL_FORMATTER)
+            String targetLabel = XSSFTools.readStringFromCell(row, MN_ITEM_LABEL_CELL_NUM)
+            String materialLabel = XSSFTools.readStringFromCell(row, MN_MATERIAL_LABEL_CELL_NUM)
+            BigDecimal normAmount = XSSFTools.readNumberFromCell(row, MN_NORM_AMOUNT_CELL_NUM)
 
-            ProductMaster productMaster = productMasterBySku.get(sku, new ProductMaster(sku, label, family, uom))
-            productMasterByItemLabel[ label ] = productMaster
+            ProductMaster targetProductMaster = productMasterByItemLabel[ targetLabel ] as ProductMaster
+            ProductMaster materialProductMaster = productMasterByItemLabel[ materialLabel ] as ProductMaster
+
+            Map materialNormByTargetSku = materialNormByTargetSkuByDate.get(date, [ : ])
+            MaterialNorm materialNorm = materialNormByTargetSku.get(targetProductMaster.getSku(), new MaterialNorm(targetProductMaster))
+            if (!materialProductMaster) {
+                println("Failed to find Product Master of label: ${materialLabel}")
+            }
+            if (!targetProductMaster) {
+                println("Failed to find Product Master of label: ${targetLabel}")
+            }
+            materialNorm.addMaterialComponent(materialProductMaster, normAmount)
         }
     }
 
@@ -272,5 +310,9 @@ class InventoryReader {
 
     TreeMap<ZonedDateTime, Map<String, List<StockContent>>> getInStockContentsByItemLabelByDate() {
         return inStockContentsByItemLabelByDate
+    }
+
+    TreeMap<ZonedDateTime, Map<String, MaterialNorm>> getMaterialNormByTargetSkuByDate() {
+        return materialNormByTargetSkuByDate
     }
 }
