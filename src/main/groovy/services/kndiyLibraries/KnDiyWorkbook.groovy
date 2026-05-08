@@ -128,14 +128,17 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
     static Integer PT_MAX_CHARACTERS = 85
 
     static final String DEFAULT_FONT_NAME = "Calibri Light"
-    static final String DEFAULT_NUMBER_FORMAT = "#0.0"
+    static final String DEFAULT_NUMBER_FORMAT = "#,##0.0"
+    static final String DETAILED_NUMBER_FORMAT = "#,##0.0000"
     static final int DEFAULT_FONT_SIZE_INCREASE = 0
 
     KnDiyWorkbook(String fontName = null,
                   Integer fontSizeIncrease = null,
-                  String numberFormat = null) {
+                  String numberFormat = null,
+                  String detailedNumberFormat = null) {
         fontName = fontName ? fontName : DEFAULT_FONT_NAME
         numberFormat = numberFormat ? numberFormat : DEFAULT_NUMBER_FORMAT
+        detailedNumberFormat = detailedNumberFormat ? detailedNumberFormat : DETAILED_NUMBER_FORMAT
         fontSizeIncrease = fontSizeIncrease ? fontSizeIncrease : DEFAULT_FONT_SIZE_INCREASE
 
         this.workbook = new XSSFWorkbook()
@@ -165,47 +168,42 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
         RED_HEADER_FONT = XSSFTools.getFont(workbook, XSSFTools.BOLD_FONT, IndexedColors.RED.getIndex(), fontName, HEADER_FONT_SIZE)
         RED_HEADER_ITALIC_FONT = XSSFTools.getFont(workbook, XSSFTools.BOLD_ITALIC_FONT, IndexedColors.RED.getIndex(), fontName, HEADER_FONT_SIZE)
 
-        WRAP_STYLE = createStyleWithFont(NORMAL_FONT)
-        WRAP_BOLD_STYLE = createStyleWithFont(BOLD_FONT)
-        WRAP_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT)
-        WRAP_BOLD_ITALIC_STYLE = createStyleWithFont(BOLD_ITALIC_FONT)
+        WRAP_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
+        WRAP_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
+        WRAP_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
+        WRAP_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
 
-        WRAP_NUMBER_STYLE = createStyleWithFont(NORMAL_FONT, numberFormat)
-        WRAP_NUMBER_BOLD_STYLE = createStyleWithFont(BOLD_FONT, numberFormat)
-        WRAP_NUMBER_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT, numberFormat)
-        WRAP_NUMBER_BOLD_ITALIC_STYLE = createStyleWithFont(BOLD_ITALIC_FONT, numberFormat)
+        TITLE_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
+        TITLE_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
 
-        TITLE_STYLE = createStyleWithFont(TITLE_FONT)
-        TITLE_ITALIC_STYLE = createStyleWithFont(TITLE_ITALIC_FONT)
+        HEADER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
+        HEADER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
+        HEADER_UNDERLINE_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
 
-        HEADER_STYLE = createStyleWithFont(HEADER_FONT)
-        HEADER_ITALIC_STYLE = createStyleWithFont(HEADER_ITALIC_FONT)
-        HEADER_UNDERLINE_STYLE = createStyleWithFont(UNDER_LINE_FONT)
+        RED_FILL_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
+        RED_FILL_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
+        RED_FILL_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
+        RED_FILL_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
 
-        RED_FILL_STYLE = createStyleWithFont(NORMAL_FONT)
-        RED_FILL_BOLD_STYLE = createStyleWithFont(BOLD_FONT)
-        RED_FILL_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT)
-        RED_FILL_BOLD_ITALIC_STYLE = createStyleWithFont(BOLD_ITALIC_FONT)
+        ROSE_FILL_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
+        ROSE_FILL_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
+        ROSE_FILL_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
+        ROSE_FILL_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
 
-        ROSE_FILL_STYLE = createStyleWithFont(NORMAL_FONT)
-        ROSE_FILL_BOLD_STYLE = createStyleWithFont(BOLD_FONT)
-        ROSE_FILL_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT)
-        ROSE_FILL_BOLD_ITALIC_STYLE = createStyleWithFont(BOLD_ITALIC_FONT)
+        GREEN_FILL_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
+        GREEN_FILL_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
+        GREEN_FILL_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
+        GREEN_FILL_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
 
-        GREEN_FILL_STYLE = createStyleWithFont(NORMAL_FONT)
-        GREEN_FILL_BOLD_STYLE = createStyleWithFont(BOLD_FONT)
-        GREEN_FILL_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT)
-        GREEN_FILL_BOLD_ITALIC_STYLE = createStyleWithFont(BOLD_ITALIC_FONT)
+        GREY_FILL_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
+        GREY_FILL_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
+        GREY_FILL_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
+        GREY_FILL_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
 
-        GREY_FILL_STYLE = createStyleWithFont(NORMAL_FONT)
-        GREY_FILL_BOLD_STYLE = createStyleWithFont(BOLD_FONT)
-        GREY_FILL_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT)
-        GREY_FILL_BOLD_ITALIC_STYLE = createStyleWithFont(BOLD_ITALIC_FONT)
-
-        ORANGE_FILL_STYLE = createStyleWithFont(NORMAL_FONT)
-        ORANGE_FILL_BOLD_STYLE = createStyleWithFont(BOLD_FONT)
-        ORANGE_FILL_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT)
-        ORANGE_FILL_BOLD_ITALIC_STYLE = createStyleWithFont(BOLD_ITALIC_FONT)
+        ORANGE_FILL_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
+        ORANGE_FILL_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
+        ORANGE_FILL_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
+        ORANGE_FILL_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
 
         YELLOW_FILL_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
         YELLOW_FILL_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
@@ -217,41 +215,46 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
         BLUE_FILL_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
         BLUE_FILL_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
 
+        //////////////////// DETAILED NUMBER STYLE
+        WRAP_NUMBER_STYLE = createStyleWithFont(NORMAL_FONT, detailedNumberFormat)
+        WRAP_NUMBER_BOLD_STYLE = createStyleWithFont(BOLD_FONT, detailedNumberFormat)
+        WRAP_NUMBER_ITALIC_STYLE = createStyleWithFont(ITALIC_FONT, detailedNumberFormat)
+        WRAP_NUMBER_BOLD_ITALIC_STYLE = createStyleWithFont(BOLD_ITALIC_FONT, detailedNumberFormat)
 
-        RED_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
-        RED_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
-        RED_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
-        RED_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
+        RED_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, NORMAL_FONT)
+        RED_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_FONT)
+        RED_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, ITALIC_FONT)
+        RED_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_ITALIC_FONT)
 
-        ROSE_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
-        ROSE_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
-        ROSE_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
-        ROSE_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
+        ROSE_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, NORMAL_FONT)
+        ROSE_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_FONT)
+        ROSE_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, ITALIC_FONT)
+        ROSE_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_ITALIC_FONT)
 
-        GREEN_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
-        GREEN_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
-        GREEN_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
-        GREEN_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
+        GREEN_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, NORMAL_FONT)
+        GREEN_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_FONT)
+        GREEN_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, ITALIC_FONT)
+        GREEN_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_ITALIC_FONT)
 
-        GREY_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
-        GREY_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
-        GREY_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
-        GREY_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
+        GREY_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, NORMAL_FONT)
+        GREY_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_FONT)
+        GREY_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, ITALIC_FONT)
+        GREY_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_ITALIC_FONT)
 
-        ORANGE_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
-        ORANGE_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
-        ORANGE_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
-        ORANGE_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
+        ORANGE_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, NORMAL_FONT)
+        ORANGE_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_FONT)
+        ORANGE_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, ITALIC_FONT)
+        ORANGE_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_ITALIC_FONT)
 
-        YELLOW_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
-        YELLOW_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
-        YELLOW_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
-        YELLOW_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
+        YELLOW_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, NORMAL_FONT)
+        YELLOW_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_FONT)
+        YELLOW_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, ITALIC_FONT)
+        YELLOW_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_ITALIC_FONT)
 
-        BLUE_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, NORMAL_FONT)
-        BLUE_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_FONT)
-        BLUE_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, ITALIC_FONT)
-        BLUE_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, numberFormat, BOLD_ITALIC_FONT)
+        BLUE_FILL_NUMBER_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, NORMAL_FONT)
+        BLUE_FILL_NUMBER_BOLD_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_FONT)
+        BLUE_FILL_NUMBER_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, ITALIC_FONT)
+        BLUE_FILL_NUMBER_BOLD_ITALIC_STYLE = XSSFTools.getCellStyleWithFormat(workbook, creationHelper, detailedNumberFormat, BOLD_ITALIC_FONT)
 
         [
                 WRAP_STYLE, WRAP_BOLD_STYLE, WRAP_ITALIC_STYLE, WRAP_BOLD_ITALIC_STYLE,
@@ -350,6 +353,21 @@ abstract class KnDiyWorkbook implements KnDiyWorkbookInterface {
         println("--Start Writing Workbook at ${pathToSave}")
         writeIntoWorkBook()
         println("--Finished Writing Workbook")
+        saveWorkBookAsFile(pathToSave)
+        println("--> SAVED Workbook to ${pathToSave}")
+    }
+
+    void createWorkbook() {
+        println("")
+        println("++++++++++++++++++++")
+        println("++++++++++++++++++++")
+        println("")
+        println("--Start Writing Workbook")
+        writeIntoWorkBook()
+        println("--Finished Writing Workbook")
+    }
+
+    void saveWorkbook(String pathToSave) {
         saveWorkBookAsFile(pathToSave)
         println("--> SAVED Workbook to ${pathToSave}")
     }

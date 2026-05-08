@@ -5,6 +5,7 @@ class ProductMaster {
     private String label
     private String itemFamily
     private String uom
+    private String processingTarget
 
     static final String FAMILY_NVL = "Nguyên vật liệu"
     static final String FAMILY_TRADE_GOODS = "Thương mại"
@@ -13,11 +14,13 @@ class ProductMaster {
     ProductMaster(String sku,
                   String label,
                   String itemFamily,
-                  String uom) {
+                  String uom,
+                  String processingTarget = null) {
         this.sku = sku
         this.label = label
         this.itemFamily = itemFamily
         this.uom = uom
+        this.processingTarget = processingTarget
     }
 
     String getSku() {
@@ -36,6 +39,9 @@ class ProductMaster {
         return uom
     }
 
+    String getProcessingTarget() {
+        return processingTarget
+    }
 
     @Override
     public String toString() {

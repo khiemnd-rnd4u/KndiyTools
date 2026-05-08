@@ -3,6 +3,11 @@ package services.kndiyLibraries
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.ss.util.RegionUtil
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
+
+import java.text.SimpleDateFormat
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class XSSFTools {
     static final String BOLD_FONT = "Bold"
@@ -167,4 +172,53 @@ class XSSFTools {
         }
     }
 
+    static String readStringFromCell(Sheet sheet, int rowNum, int cellNum) {
+        return readStringFromCell(getOrSetRow(sheet, rowNum), cellNum)
+    }
+
+    static String readStringFromCell(Row row, int cellNum) {
+        try {
+            return KndiyFormatter.getStringWithoutRedundantSpaces(getOrSetCell(row, cellNum).getStringCellValue())
+        }
+        catch (ex) {
+            println(ex.getMessage())
+            return null
+        }
+    }
+
+    static BigDecimal readNumberFromCell(Sheet sheet, int rowNum, int cellNum) {
+        return readNumberFromCell(getOrSetRow(sheet, rowNum), cellNum)
+    }
+
+    static BigDecimal readNumberFromCell(Row row, int cellNum) {
+        try {
+            return getOrSetCell(row, cellNum).getNumericCellValue()
+        }
+        catch (ex) {
+            println(ex.getMessage())
+            return null
+        }
+    }
+
+    static ZonedDateTime readDateTimeFromCell(Sheet sheet, int rowNum, int cellNum, SimpleDateFormat dateCellFormatter) {
+        return readDateTimeFromCell(sheet.getRow(rowNum), cellNum, dateCellFormatter)
+    }
+
+    static ZonedDateTime readDateTimeFromCell(Row row, int cellNum, SimpleDateFormat dateCellFormatter) {
+        try {
+            String dateStr = dateCellFormatter.format(row.getCell(cellNum).getDateCellValue())
+            ZonedDateTime date = DateTimeResolver.getZonedDateTime(dateStr)
+            return date
+        }
+        catch (ex) {
+            println(ex.getMessage())
+            return null
+        }
+    }
+
+    static XSSFWorkbook getWorkbook(String filePath) {
+        try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
+            return new XSSFWorkbook(fileInputStream)
+        }
+    }
 }

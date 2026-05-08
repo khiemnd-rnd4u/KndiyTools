@@ -94,4 +94,20 @@ class DateTimeResolver {
                 ? ZoneId.of(zone)
                 : ZONE_ID_HCM)
     }
+
+    static ZonedDateTime getMaxDateFromStringList(List<String> dates) {
+        return getZonedDateTime(dates.max())
+    }
+
+    static ZonedDateTime getMaxDate(List<ZonedDateTime> dates) {
+        return dates.findAll { return it != null }.max()
+    }
+
+    static ZonedDateTime getMinDateFromStringList(List<String> dates) {
+        return getZonedDateTime(dates.min())
+    }
+
+    static ZonedDateTime getMinDate(List<ZonedDateTime> dates) {
+        return dates.findAll { return it != null }.min()
+    }
 }
